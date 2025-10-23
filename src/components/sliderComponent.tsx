@@ -4,13 +4,6 @@ import Select from "react-select";
 import { FaPlay, FaPause } from "react-icons/fa6";
 import { FaTachometerAlt } from "react-icons/fa";
 
-
-const options = [
-  { value: "p1", label: "Participant 1" },
-  { value: "p2", label: "Participant 2" },
-  { value: "p3", label: "Participant 3" },
-];
-
 const speeds = [
   { value: 0.1, label: ".1x" },
   { value: 0.5, label: ".5x" },
@@ -117,21 +110,6 @@ export default function SliderComponent({
         id="controls"
         className="mt-1 flex justify-center flex-col items-center w-full"
       >
-
-        {/* Participant selection */}
-        {/* <div id="participant-select" className="mb-2 text-black flex gap-5" suppressHydrationWarning={true}>
-          {isClient ? (
-            <Select
-              id="participant"
-              options={options}
-              defaultValue={options[0]}
-              isSearchable={false}
-              menuPlacement="top"
-            />
-          ) : (
-            <div>Loading...</div>
-          )}
-        </div> */}
 
         {/* Playback controls */}
         <div className="justify-center flex gap-1 w-[90%]">
