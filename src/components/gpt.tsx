@@ -4,6 +4,7 @@ import { Message } from "@/components/types";
 
 type GPTProps = {
   messages?: Message[];
+  pasteTexts?: string[];
 };
 
 const sleep = (seconds : number) => {
@@ -24,7 +25,33 @@ const sleep = (seconds : number) => {
 };
 };
 
-export default function GPT({ messages = [] }: GPTProps) {
+export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
+  // Function to check if any paste text matches this message content
+  const highlightPastedText = (content: string): React.ReactNode => {
+    if (!pasteTexts || pasteTexts.length === 0) {
+      return content;
+    }
+
+    // Check if any paste text matches (or is contained in) this message
+    let hasMatch = false;
+    for (const pasteText of pasteTexts) {
+      if (pasteText && content.includes(pasteText.trim())) {
+        hasMatch = true;
+        break;
+      }
+    }
+
+    // If there's a match, wrap in a highlight span
+    if (hasMatch) {
+      return (
+        <span className="bg-amber-50 rounded px-1">
+          {content}
+        </span>
+      );
+    }
+
+    return content;
+  };
 
 
 
@@ -80,7 +107,7 @@ export default function GPT({ messages = [] }: GPTProps) {
                   </div>
                 </div>
                 <div className="whitespace-pre-wrap text-gray-800 ml-11 text-xl">
-                  {m.content}
+                  {highlightPastedText(m.content)}
                 </div>
               </div>
             ))

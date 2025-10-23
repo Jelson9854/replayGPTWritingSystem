@@ -139,6 +139,7 @@ const handleLoadArrays = async (): Promise<void> => {
     const newMessages: Message[] = [];
     const newCopyTimestamps: number[] = [];
     const newPasteTimestamps: number[] = [];
+    const newPasteTexts: string[] = [];
     let messageIndex = 0;
 
     for(const element of data) {
@@ -152,6 +153,8 @@ const handleLoadArrays = async (): Promise<void> => {
           // Track paste events (op_type 'p')
           if (element.op_type === 'p') {
             newPasteTimestamps.push(element.time);
+            // Store the pasted text from the 'add' column
+            newPasteTexts.push(element.add || "");
           }
 
           let record = element.recording_obj;
@@ -207,9 +210,10 @@ const handleLoadArrays = async (): Promise<void> => {
     // Store all messages for seek functionality
     allMessagesRef.current = newMessages;
 
-    // Store copy and paste timestamps
+    // Store copy and paste timestamps and texts
     copyTimestampsRef.current = newCopyTimestamps;
     pasteTimestampsRef.current = newPasteTimestamps;
+    pasteTextsRef.current = newPasteTexts;
     console.log("Copy events found:", newCopyTimestamps.length);
     console.log("Paste events found:", newPasteTimestamps.length);
 
@@ -461,7 +465,7 @@ useEffect(() => {
     <div className={`border rounded-xl shadow-xl border-gray-200 p-5 bg-white ${
       isPromptVisible ? 'w-[45%]' : 'w-1/2'
     } flex flex-col`}>
-      <GPT messages={messReplay}/>
+      <GPT messages={messReplay} pasteTexts={pasteTextsRef.current}/>
     </div>
   </div>
 </div>
