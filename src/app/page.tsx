@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Select from "react-select";
 
-const participants = [
-  { value: "p1", label: "Participant 1" },
-  { value: "p2", label: "Participant 2" },
-  { value: "p3", label: "Participant 3" },
-];
+// Generate participants for all essay_nums (0-75)
+const participants = Array.from({ length: 77 }, (_, i) => ({
+  value: `p${i}`,
+  label: `Participant ${i+1}`,
+}));
 
 export default function LandingPage() {
   const [selectedParticipant, setSelectedParticipant] = useState(participants[0]);
@@ -42,17 +42,27 @@ export default function LandingPage() {
         {/* Instructions Section */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            How to Use This System
+            Instructions
           </h2>
           <div className="text-gray-700 leading-relaxed space-y-4">
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+              This tool allows you to replay essay writing sessions with
+              ChatGPT. Select a participant from the dropdown below and click
+              "Start Replay Session" to begin.
             </p>
             <p>
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              To start the system, press the play button on the left side of the
+              screen. You can pause, rewind, and fast-forward through the
+              session to analyze the interaction between the participant and
+              ChatGPT.
             </p>
             <p>
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+              The timeline is annotated with the ChatGPT events, shown as small
+              orange triangles on the timeline. Click to seek to these events
+              directly.
+            </p>
+            <p>
+              * Note: Seeking may take a few seconds as it plays the session at a high speed until it reaches the desired timestamp.
             </p>
           </div>
         </div>
@@ -73,7 +83,7 @@ export default function LandingPage() {
                 options={participants}
                 value={selectedParticipant}
                 onChange={(option) => option && setSelectedParticipant(option)}
-                isSearchable={false}
+                isSearchable={true}
                 className="text-black"
                 styles={{
                   control: (provided) => ({
@@ -102,13 +112,6 @@ export default function LandingPage() {
           >
             Start Replay Session
           </button>
-        </div>
-
-        {/* Footer Info */}
-        <div className="mt-8 text-center text-gray-600 text-sm">
-          <p>
-            This system allows you to replay and analyze essay writing sessions with ChatGPT
-          </p>
         </div>
       </main>
     </div>

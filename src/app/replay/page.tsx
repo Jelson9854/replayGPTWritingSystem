@@ -6,6 +6,7 @@ import { Message, CSVdata } from "@/components/types";
 import Prompt from "@/components/prompt";
 import GPT from "@/components/gpt";
 import SliderComponent from "@/components/sliderComponent";
+import Toast from "@/components/toast";
 import { CodePlay } from "codemirror-record";
 import dynamic from 'next/dynamic';
 import type { ReplayHandle } from "@/components/replay";
@@ -63,6 +64,11 @@ export default function Home() {
   const [recording, setRecording] = useState<string>("");
   const allMessagesRef = useRef<Message[]>([]); // Store all messages for seek functionality
   const messagePlaybackActive = useRef(false); // Track if message playback loop is running
+  const copyTimestampsRef = useRef<number[]>([]); // Store copy event timestamps
+  const pasteTimestampsRef = useRef<number[]>([]); // Store paste event timestamps
+  const pasteTextsRef = useRef<string[]>([]); // Store paste event text content
+  const [showCopyToast, setShowCopyToast] = useState(false);
+  const lastCopyIndexRef = useRef(0); // Track which copy events we've already shown
 
   const startProgressTracking = () => {
     const updateProgress = () => {
@@ -79,6 +85,18 @@ export default function Home() {
           }
           return prev;
         });
+
+        // Check for copy events and show toast
+        const copyTimestamps = copyTimestampsRef.current;
+        for (let i = lastCopyIndexRef.current; i < copyTimestamps.length; i++) {
+          if (copyTimestamps[i] <= currentTimeSec) {
+            // Found a new copy event that just occurred
+            setShowCopyToast(true);
+            lastCopyIndexRef.current = i + 1;
+          } else {
+            break; // Timestamps are in order, so we can stop
+          }
+        }
       }
       requestAnimationFrame(updateProgress);
     };
@@ -119,11 +137,23 @@ const handleLoadArrays = async (): Promise<void> => {
 
     const newRecordings: string[] = [];
     const newMessages: Message[] = [];
+    const newCopyTimestamps: number[] = [];
+    const newPasteTimestamps: number[] = [];
     let messageIndex = 0;
 
     for(const element of data) {
       switch(element.op_loc) {
         case "editor":
+          // Track copy events (op_type 'y')
+          if (element.op_type === 'y') {
+            newCopyTimestamps.push(element.time);
+          }
+
+          // Track paste events (op_type 'p')
+          if (element.op_type === 'p') {
+            newPasteTimestamps.push(element.time);
+          }
+
           let record = element.recording_obj;
 
           // Skip if recording_obj is null or undefined
@@ -176,6 +206,12 @@ const handleLoadArrays = async (): Promise<void> => {
 
     // Store all messages for seek functionality
     allMessagesRef.current = newMessages;
+
+    // Store copy and paste timestamps
+    copyTimestampsRef.current = newCopyTimestamps;
+    pasteTimestampsRef.current = newPasteTimestamps;
+    console.log("Copy events found:", newCopyTimestamps.length);
+    console.log("Paste events found:", newPasteTimestamps.length);
 
     // Combine all recording objects into one JSON array string
     const combinedRecording = "[" + newRecordings.join(", ") + "]";
@@ -291,6 +327,18 @@ const playMessages = (messagesToPlay: Message[]): void => {
 
     console.log("Target time:", targetTimeSec.toFixed(2), "seconds");
 
+    // Reset copy event tracking based on seek position
+    const copyTimestamps = copyTimestampsRef.current;
+    let newCopyIndex = 0;
+    for (let i = 0; i < copyTimestamps.length; i++) {
+      if (copyTimestamps[i] <= targetTimeSec) {
+        newCopyIndex = i + 1;
+      } else {
+        break;
+      }
+    }
+    lastCopyIndexRef.current = newCopyIndex;
+
     // Save current playback state
     const wasPlaying = codePlayer.getStatus() === 'PLAY';
 
@@ -356,11 +404,19 @@ useEffect(() => {
 
   return (
     <>
+    {/* Toast notification for copy events */}
+    <Toast
+      message="Text copied"
+      isVisible={showCopyToast}
+      onClose={() => setShowCopyToast(false)}
+      duration={2000}
+    />
+
     {/* Header */}
     <header className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <h1 className="text-2xl font-bold text-gray-900">
-          Essay Writing Replay - {participantParam === 'p1' ? 'Participant 1' : participantParam === 'p2' ? 'Participant 2' : 'Participant 3'}
+          Essay Writing Replay - Participant {essayNum + 1}
         </h1>
         <p className="text-sm text-gray-600 mt-1">
           Interactive playback of essay writing sessions with ChatGPT
@@ -385,7 +441,7 @@ useEffect(() => {
   {/* Toggle button */}
   <button
     onClick={() => setisPromptVisible(!isPromptVisible)}
-    className={`bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 h-10 flex items-center justify-center shadow-lg hover:shadow-xl transition-all z-50 self-start flex-shrink-0 ${
+    className={`bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-3 h-fit flex items-center justify-center shadow-xl hover:shadow-2xl transition-all z-50 flex-shrink-0 self-start ${
       isPromptVisible ? 'mx-2' : 'mr-2'
     }`}
   >
@@ -421,6 +477,8 @@ useEffect(() => {
         currentProgress={currentProgress}
         totalDuration={totalDuration}
         messageTimestamps={allMessagesRef.current.map(msg => msg.time)}
+        copyTimestamps={copyTimestampsRef.current}
+        pasteTimestamps={pasteTimestampsRef.current}
       />
     </div>
   </div>

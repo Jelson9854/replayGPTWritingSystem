@@ -22,6 +22,8 @@ interface SliderProps {
   currentProgress?: number; // 0-100 percentage
   totalDuration?: number; // in seconds
   messageTimestamps?: number[]; // Array of message times in seconds
+  copyTimestamps?: number[]; // Array of copy event times in seconds
+  pasteTimestamps?: number[]; // Array of paste event times in seconds
 }
 
 export default function SliderComponent({
@@ -30,7 +32,9 @@ export default function SliderComponent({
   onSeek,
   currentProgress = 0,
   totalDuration = 0,
-  messageTimestamps = []
+  messageTimestamps = [],
+  copyTimestamps = [],
+  pasteTimestamps = []
 }: SliderProps) {
   const [isClient, setIsClient] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -192,29 +196,87 @@ export default function SliderComponent({
                 }}
               />
 
-              {/* Message markers (orange triangles) */}
+              {/* Message markers (teal triangles) */}
               {messageTimestamps.map((timestamp, index) => {
                 const percentage = totalDuration > 0 ? (timestamp / totalDuration) * 100 : 0;
                 return (
                   <div
-                    key={`marker-${index}`}
+                    key={`message-marker-${index}`}
                     className="absolute pointer-events-none"
                     style={{
                       left: `${percentage}%`,
-                      top: '-10px',
+                      top: '-15px',
                       transform: 'translateX(-50%)',
                       zIndex: 10
                     }}
                     title={`Message at ${Math.floor(timestamp / 60)}:${Math.floor(timestamp % 60).toString().padStart(2, '0')}`}
                   >
-                    {/* Orange triangle pointing down */}
+                    {/* Teal triangle pointing down */}
                     <div
                       style={{
                         width: 0,
                         height: 0,
-                        borderLeft: '5px solid transparent',
-                        borderRight: '5px solid transparent',
-                        borderTop: '8px solid #ff9800',
+                        borderLeft: '8.75px solid transparent',
+                        borderRight: '8.75px solid transparent',
+                        borderTop: '14px solid #10a37f',
+                      }}
+                    />
+                  </div>
+                );
+              })}
+
+              {/* Copy markers (amber triangles) */}
+              {copyTimestamps.map((timestamp, index) => {
+                const percentage = totalDuration > 0 ? (timestamp / totalDuration) * 100 : 0;
+                return (
+                  <div
+                    key={`copy-marker-${index}`}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${percentage}%`,
+                      top: '-15px',
+                      transform: 'translateX(-50%)',
+                      zIndex: 10
+                    }}
+                    title={`Copy at ${Math.floor(timestamp / 60)}:${Math.floor(timestamp % 60).toString().padStart(2, '0')}`}
+                  >
+                    {/* Amber triangle pointing down */}
+                    <div
+                      style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: '8.75px solid transparent',
+                        borderRight: '8.75px solid transparent',
+                        borderTop: '14px solid #f59e0b',
+                      }}
+                    />
+                  </div>
+                );
+              })}
+
+              {/* Paste markers (violet triangles) */}
+              {pasteTimestamps.map((timestamp, index) => {
+                const percentage = totalDuration > 0 ? (timestamp / totalDuration) * 100 : 0;
+                return (
+                  <div
+                    key={`paste-marker-${index}`}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${percentage}%`,
+                      top: '-15px',
+                      transform: 'translateX(-50%)',
+                      zIndex: 10
+                    }}
+                    title={`Paste at ${Math.floor(timestamp / 60)}:${Math.floor(timestamp % 60).toString().padStart(2, '0')}`}
+                  >
+                    {/* Violet triangle pointing down */}
+                    <div
+                      style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: '8.75px solid transparent',
+                        borderRight: '8.75px solid transparent',
+                        borderTop: '14px solid #8b5cf6',
                       }}
                     />
                   </div>

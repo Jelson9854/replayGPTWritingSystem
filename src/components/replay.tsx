@@ -82,7 +82,7 @@ const Replay = forwardRef<ReplayHandle, Props>((props, ref) => {
 
   return (
     <>
-      <h3 className="flex items-center text-xl font-semibold text-gray-800 mb-3 pb-3 border-b border-gray-200">
+      <h3 className="flex items-center text-[24px] font-semibold text-gray-800 mb-3 pb-3 border-b border-gray-200">
         <svg
           className="w-5 h-5 mr-2 text-indigo-600"
           fill="none"
