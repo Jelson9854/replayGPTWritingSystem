@@ -28,6 +28,28 @@ export type ParticipantStats = {
   userPercent: number;
 };
 
+export type TypingSession = {
+  startTime: number;  // seconds
+  endTime: number;    // seconds
+};
+
+export type IdlePeriod = {
+  start: number;      // seconds
+  end: number;        // seconds
+  duration: number;   // seconds
+};
+
+export type TypingDensity = {
+  segmentIndex: number;
+  count: number;       // number of typing events in this segment
+  normalized: number;  // 0-1 normalized value for visualization
+};
+
+export type WordCountData = {
+  time: number;           // seconds
+  wordCount: number;      // cumulative word count at this time
+};
+
 export type CSVdata = Array<{
   idx: number;
   essay_num: number;

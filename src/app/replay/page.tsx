@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Papa from "papaparse";
-import { Message, CSVdata, TimelineEvent, ParticipantStats, PasteText } from "@/components/types";
+import { Message, CSVdata, TimelineEvent, ParticipantStats, PasteText, TypingSession, IdlePeriod, TypingDensity, WordCountData } from "@/components/types";
 import Prompt from "@/components/prompt";
 import GPT from "@/components/gpt";
 import SliderComponent from "@/components/sliderComponent";
@@ -75,11 +75,16 @@ function ReplayPage() {
   const messagePlaybackActive = useRef(false);
   const timelineEventsRef = useRef<TimelineEvent[]>([]);
   const pasteTextsRef = useRef<PasteText[]>([]);
+  const [typingSessions, setTypingSessions] = useState<TypingSession[]>([]);
+  const [idlePeriods, setIdlePeriods] = useState<IdlePeriod[]>([]);
+  const [typingDensity, setTypingDensity] = useState<TypingDensity[]>([]);
+  const [wordCountData, setWordCountData] = useState<WordCountData[]>([]);
   const [showCopyToast, setShowCopyToast] = useState(false);
   const [showResumeToast, setShowResumeToast] = useState(false);
   const lastCopyIndexRef = useRef(0);
   const dataArrayRef = useRef<any[]>([]);
   const [isGraphsVisible, setIsGraphsVisible] = useState(false);
+  const [isWordCountGraphExpanded, setIsWordCountGraphExpanded] = useState(false);
   const [participants, setParticipants] = useState<ParticipantOption[]>([]);
   const [selectedParticipant, setSelectedParticipant] = useState<ParticipantOption | null>(null);
   const progressAnimationFrameRef = useRef<number | null>(null);
@@ -257,6 +262,150 @@ function ReplayPage() {
     return () => clearInterval(checkEditor);
   }, [essayNum, participantParam, participants]);
 
+  const getTypingSessionsAndIdlePeriods = (data: any[]) => {
+    const IDLE_THRESHOLD = 60; // 1 minute in seconds
+    const GAP_THRESHOLD = 20; // 20 seconds gap to split typing sessions
+
+    // Collect editor event timestamps for typing sessions
+    const editorEventTimes: number[] = data
+      .filter(e => e.op_loc === 'editor')
+      .map(e => e.time)
+      .sort((a, b) => a - b);
+
+    // Collect ALL event timestamps for idle detection
+    const allEventTimes: number[] = data
+      .map(e => e.time)
+      .sort((a, b) => a - b);
+
+    const sessions: TypingSession[] = [];
+    const idles: IdlePeriod[] = [];
+
+    // Calculate typing sessions (editor events only)
+    if (editorEventTimes.length > 0) {
+      let currentSession = {
+        startTime: editorEventTimes[0],
+        endTime: editorEventTimes[0],
+      };
+
+      for (let i = 1; i < editorEventTimes.length; i++) {
+        const timeSinceLastEvent = editorEventTimes[i] - currentSession.endTime;
+
+        if (timeSinceLastEvent <= GAP_THRESHOLD) {
+          // Same session - extend end time
+          currentSession.endTime = editorEventTimes[i];
+        } else {
+          // New session
+          sessions.push(currentSession);
+          currentSession = {
+            startTime: editorEventTimes[i],
+            endTime: editorEventTimes[i],
+          };
+        }
+      }
+      // Add last session
+      sessions.push(currentSession);
+    }
+
+    // Calculate idle periods (gaps in ALL events > 1 minute)
+    if (allEventTimes.length > 0) {
+      // Check for idle at the beginning (from time 0 to first event)
+      if (allEventTimes[0] > IDLE_THRESHOLD) {
+        idles.push({
+          start: 0,
+          end: allEventTimes[0],
+          duration: allEventTimes[0],
+        });
+      }
+
+      // Check for idle periods between events
+      for (let i = 0; i < allEventTimes.length - 1; i++) {
+        const gap = allEventTimes[i + 1] - allEventTimes[i];
+        if (gap > IDLE_THRESHOLD) {
+          idles.push({
+            start: allEventTimes[i],
+            end: allEventTimes[i + 1],
+            duration: gap,
+          });
+        }
+      }
+    }
+
+    setTypingSessions(sessions);
+    setIdlePeriods(idles);
+
+    // Calculate typing density (for YouTube-style activity graph)
+    const NUM_SEGMENTS = 100; // Divide timeline into 100 segments
+    const lastEventTime = allEventTimes.length > 0 ? allEventTimes[allEventTimes.length - 1] : 0;
+    const segmentDuration = lastEventTime / NUM_SEGMENTS;
+
+    if (segmentDuration > 0) {
+      const densityCounts: number[] = new Array(NUM_SEGMENTS).fill(0);
+
+      // Count editor events per segment
+      editorEventTimes.forEach(time => {
+        const segmentIndex = Math.min(Math.floor(time / segmentDuration), NUM_SEGMENTS - 1);
+        densityCounts[segmentIndex]++;
+      });
+
+      // Find max for normalization
+      const maxCount = Math.max(...densityCounts, 1);
+
+      // Create density data with normalized values
+      const density: TypingDensity[] = densityCounts.map((count, index) => ({
+        segmentIndex: index,
+        count,
+        normalized: count / maxCount,
+      }));
+
+      setTypingDensity(density);
+      console.log("Typing density calculated:", NUM_SEGMENTS, "segments, max count:", maxCount);
+    }
+
+    console.log("Typing sessions found:", sessions.length);
+    console.log("Idle periods found:", idles.length);
+    if (idles.length > 0) {
+      console.log("Sample idle periods:", idles.slice(0, 3).map(p =>
+        `${Math.floor(p.duration / 60)}m ${Math.floor(p.duration % 60)}s`
+      ));
+    }
+  };
+
+  const getWordCountData = (data: any[]) => {
+    // Filter editor events with current_editor data and sort by time
+    const editorEvents = data
+      .filter(e => e.op_loc === 'editor' && e.current_editor)
+      .sort((a, b) => a.time - b.time);
+
+    const wordCounts: WordCountData[] = [];
+
+    // Add initial point at time 0
+    wordCounts.push({ time: 0, wordCount: 0 });
+
+    for (const event of editorEvents) {
+      try {
+        const lines = JSON.parse(event.current_editor);
+        const text = lines.join(' ');
+        // Count words by splitting on whitespace and filtering empty strings
+        const words = text.split(/\s+/).filter((word: string) => word.length > 0);
+        const wordCount = words.length;
+
+        wordCounts.push({
+          time: event.time,
+          wordCount: wordCount,
+        });
+      } catch (e) {
+        // Skip if parsing fails
+        continue;
+      }
+    }
+
+    setWordCountData(wordCounts);
+    console.log("Word count data calculated:", wordCounts.length, "points");
+    if (wordCounts.length > 0) {
+      console.log("Final word count:", wordCounts[wordCounts.length - 1].wordCount);
+    }
+  };
+
   const getTimelineEvents = (data) => {
     let newTimelineEvents: TimelineEvent[] = [];
     let newPasteTexts: PasteText[] = [];
@@ -394,6 +543,8 @@ function ReplayPage() {
       playMessages(newMessages);
 
       getTimelineEvents(data);
+      getTypingSessionsAndIdlePeriods(data);
+      getWordCountData(data);
 
       // Start progress tracking
       startProgressTracking();
@@ -558,6 +709,11 @@ function ReplayPage() {
 
       console.log(`Seeking to element index ${seekIndex} (before time ${targetTimeSec.toFixed(2)}s)`);
 
+      // Save current scroll position before changing editor content
+      const scrollInfo = editor.getScrollInfo();
+      const savedScrollTop = scrollInfo.top;
+      const savedScrollLeft = scrollInfo.left;
+
       // Find element with current_editor at or before seekIndex
       let editorStateIndex = seekIndex;
       while (editorStateIndex >= 0 && !data[editorStateIndex].current_editor) {
@@ -565,16 +721,22 @@ function ReplayPage() {
       }
 
       // Set editor to target state (state before the target time)
-      if (editorStateIndex >= 0 && data[editorStateIndex].current_editor) {
-        const lines = parseEditorStateArray(data[editorStateIndex].current_editor);
-        const stateText = lines.join('\n');
-        editor.setValue(stateText);
-        console.log(`Set editor to state from index ${editorStateIndex} (time ${data[editorStateIndex]?.time || 0}s)`);
-      } else {
-        // No editor state found, start from blank
-        editor.setValue('\n\n\n\n');
-        console.log('No editor state found, starting from blank');
-      }
+      // Use operation() to batch changes and minimize redraws
+      editor.operation(() => {
+        if (editorStateIndex >= 0 && data[editorStateIndex].current_editor) {
+          const lines = parseEditorStateArray(data[editorStateIndex].current_editor);
+          const stateText = lines.join('\n');
+          editor.setValue(stateText);
+          console.log(`Set editor to state from index ${editorStateIndex} (time ${data[editorStateIndex]?.time || 0}s)`);
+        } else {
+          // No editor state found, start from blank
+          editor.setValue('\n\n\n\n');
+          console.log('No editor state found, starting from blank');
+        }
+        
+        // Restore scroll position immediately within the operation
+        editor.scrollTo(savedScrollLeft, savedScrollTop);
+      });
 
       // Build new recording from seekIndex + 1 (first element at or after target time)
       const recordingStartIndex = seekIndex + 1;
@@ -717,7 +879,9 @@ function ReplayPage() {
         </div>
       </header>
 
-      <main className="px-6 py-5 flex h-[calc(100vh-9rem)]">
+      <main className={`px-6 py-5 flex transition-all duration-300 ${
+        isWordCountGraphExpanded ? "h-[calc(100vh-19rem)]" : "h-[calc(100vh-9rem)]"
+      }`}>
         {/* Sliding Prompt Panel */}
         <div
           className={`transition-all duration-300 flex-shrink-0 ${
@@ -791,7 +955,7 @@ function ReplayPage() {
         style={{
           width: '25%',
           top: '5.5rem',
-          bottom: '3.6rem',
+          bottom: isWordCountGraphExpanded ? '14rem' : '3.6rem',
           height: 'auto'
         }}
       >
@@ -802,7 +966,9 @@ function ReplayPage() {
       </div>
 
       {/* Controls footer with Legend */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg py-3 px-6">
+      <div className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg px-6 flex flex-col justify-end transition-all duration-300 ${
+        isWordCountGraphExpanded ? "h-[220px]" : "h-14"
+      }`}>
         {/* Slide-up Legend Panel */}
         <div
           className={`absolute right-6 bg-gray-50 rounded-t-lg border border-gray-200 shadow-xl transition-all duration-300 overflow-hidden ${
@@ -818,27 +984,31 @@ function ReplayPage() {
         </div>
 
         {/* Controls Section */}
-        <div className="flex items-center w-full justify-center">
-          <div className="flex-grow max-w-[calc(100%-120px)] mr-2">
-            <SliderComponent
-              onSpeedChange={handleSpeedChange}
-              onPlayChange={handlePlayChange}
-              onSeek={handleSeek}
-              currentProgress={currentProgress}
-              totalDuration={totalDuration}
-              timelineEvents={timelineEventsRef.current}
-            />
-          </div>
-          {/* Toggle Legend button */}
-          <button
-            onClick={() => setIsLegendVisible(!isLegendVisible)}
-            className="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 flex items-center justify-center shadow-lg hover:shadow-xl transition-all flex-shrink-0"
-          >
-            <span className="text-sm font-medium">
-              Legend {isLegendVisible ? "▼" : "▲"}
-            </span>
-          </button>
+        <div className="flex items-center w-full pb-3 pt-0 pr-24">
+          <SliderComponent
+            onSpeedChange={handleSpeedChange}
+            onPlayChange={handlePlayChange}
+            onSeek={handleSeek}
+            onGraphToggle={setIsWordCountGraphExpanded}
+            currentProgress={currentProgress}
+            totalDuration={totalDuration}
+            timelineEvents={timelineEventsRef.current}
+            typingSessions={typingSessions}
+            idlePeriods={idlePeriods}
+            typingDensity={typingDensity}
+            wordCountData={wordCountData}
+          />
         </div>
+        
+        {/* Toggle Legend button - Fixed position */}
+        <button
+          onClick={() => setIsLegendVisible(!isLegendVisible)}
+          className="absolute right-6 bottom-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 flex items-center justify-center shadow-lg hover:shadow-xl transition-all"
+        >
+          <span className="text-sm font-medium">
+            Legend {isLegendVisible ? "▼" : "▲"}
+          </span>
+        </button>
       </div>
     </>
   );
