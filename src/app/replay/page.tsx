@@ -63,8 +63,8 @@ interface ParticipantOption {
 function ReplayPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const participantParam = searchParams.get("participant") || "p0";
-  const essayNum = parseInt(participantParam.replace("p", ""));
+  const participantParam = searchParams.get("participant") || "p1";
+  const essayNum = parseInt(participantParam.replace("p", "")) - 1; // Convert 1-based URL to 0-based index
 
   // URL parameter defaults for view settings
   const speedParam = parseFloat(searchParams.get("speed") || "1.0");
@@ -187,13 +187,13 @@ function ReplayPage() {
 
             if (participantData) {
               return {
-                value: `p${i}`,
+                value: `p${i + 1}`,
                 label: `Participant ${i + 1} (${participantData.Race}, ${participantData.Gender}, ${participantData.Age})`,
               };
             }
 
             return {
-              value: `p${i}`,
+              value: `p${i + 1}`,
               label: `Participant ${i + 1}`,
             };
           },

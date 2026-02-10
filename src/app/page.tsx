@@ -40,7 +40,7 @@ export default function LandingPage() {
 
           if (participantData) {
             return {
-              value: `p${i}`,
+              value: `p${i + 1}`,
               label: `Participant ${i + 1} (${participantData.Race}, ${participantData.Gender}, ${participantData.Age})`,
               gender: participantData.Gender,
               age: participantData.Age,
@@ -59,7 +59,7 @@ export default function LandingPage() {
           }
 
           return {
-            value: `p${i}`,
+            value: `p${i + 1}`,
             label: `Participant ${i + 1}`,
           };
         });
@@ -70,7 +70,7 @@ export default function LandingPage() {
         console.error("Error loading participant info:", error);
         // Fallback to basic participants without demographic info
         const basicParticipants = Array.from({ length: 77 }, (_, i) => ({
-          value: `p${i}`,
+          value: `p${i + 1}`,
           label: `Participant ${i + 1}`,
         }));
         setParticipants(basicParticipants);
