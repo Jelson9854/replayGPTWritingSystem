@@ -9,10 +9,16 @@ export default function ParticipantStatsPanel({ stats }: ParticipantStatsPanelPr
   return (
     <div className="space-y-4">
       <HorizontalBar
-        label="Perceived Ownership"
-        current={stats.po}
+        label="Self Efficacy in Writing"
+        current={stats.selfEfficacy}
         max={7.0}
-        color="#1f77b4"
+        color="#d62728"
+      />
+      <HorizontalBar
+        label="Technology Acceptance Model"
+        current={stats.tamOverall}
+        max={7.0}
+        color="#9467bd"
       />
       <HorizontalBar
         label="User Words"
@@ -27,16 +33,10 @@ export default function ParticipantStatsPanel({ stats }: ParticipantStatsPanelPr
         color="#2ca02c"
       />
       <HorizontalBar
-        label="Self Efficacy in Writing"
-        current={stats.selfEfficacy}
+        label="Perceived Ownership"
+        current={stats.po}
         max={7.0}
-        color="#d62728"
-      />
-      <HorizontalBar
-        label="Technology Acceptance Model"
-        current={stats.tamOverall}
-        max={7.0}
-        color="#9467bd"
+        color="#1f77b4"
       />
       <HorizontalBar
         label="Creativity Support Index"
@@ -78,8 +78,8 @@ export default function ParticipantStatsPanel({ stats }: ParticipantStatsPanelPr
                 Total Time
               </td>
               <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                {Math.floor((stats.totalTime / 60))}m{" "}
-                {Math.round((stats.totalTime % 60))}s
+                {Math.floor(stats.totalTime / 60)}m{" "}
+                {Math.round(stats.totalTime % 60)}s
               </td>
             </tr>
           </tbody>

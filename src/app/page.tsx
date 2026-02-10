@@ -88,6 +88,13 @@ export default function LandingPage() {
     }
   };
 
+  const handleRandomParticipant = () => {
+    if (participants.length > 0) {
+      const randomIndex = Math.floor(Math.random() * participants.length);
+      setSelectedParticipant(participants[randomIndex]);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       {/* Header */}
@@ -145,35 +152,48 @@ export default function LandingPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select Participant
             </label>
-            {isClient ? (
-              <Select
-                options={participants}
-                value={selectedParticipant}
-                onChange={(option) => option && setSelectedParticipant(option)}
-                isSearchable={true}
-                className="text-black"
-                styles={{
-                  control: (provided) => ({
-                    ...provided,
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "0.5rem",
-                    padding: "0.25rem",
-                    boxShadow: "none",
-                    "&:hover": {
-                      border: "1px solid #6366f1",
-                    },
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    zIndex: 9999,
-                  }),
-                }}
-              />
-            ) : (
-              <div className="border border-gray-300 rounded-lg p-3 bg-gray-50">
-                Loading...
-              </div>
-            )}
+            <div className="flex gap-2">
+              {isClient ? (
+                <>
+                  <div className="flex-1">
+                    <Select
+                      options={participants}
+                      value={selectedParticipant}
+                      onChange={(option) => option && setSelectedParticipant(option)}
+                      isSearchable={true}
+                      className="text-black"
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "0.5rem",
+                          padding: "0.25rem",
+                          boxShadow: "none",
+                          "&:hover": {
+                            border: "1px solid #6366f1",
+                          },
+                        }),
+                        menu: (provided) => ({
+                          ...provided,
+                          zIndex: 9999,
+                        }),
+                      }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleRandomParticipant}
+                    className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium rounded-lg border border-purple-300 transition-colors duration-200"
+                    title="Select random participant"
+                  >
+                    Random
+                  </button>
+                </>
+              ) : (
+                <div className="border border-gray-300 rounded-lg p-3 bg-gray-50 flex-1">
+                  Loading...
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Participant Statistics */}

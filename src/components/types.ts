@@ -8,6 +8,7 @@ export type Message = {
 export type TimelineEvent = {
   time: number;
   type: "gpt_inquiry" | "copy" | "paste";
+  destination?: "editor" | "gpt";  // For paste events: where the paste occurred
 };
 
 export type PasteText = {
@@ -48,6 +49,14 @@ export type TypingDensity = {
 export type WordCountData = {
   time: number;           // seconds
   wordCount: number;      // cumulative word count at this time
+};
+
+export type ToastProps = {
+  message: string;
+  isVisible: boolean;
+  onClose: () => void;
+  duration?: number;
+  position?: "editor" | "default";
 };
 
 export type CSVdata = Array<{

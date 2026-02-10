@@ -37,6 +37,9 @@ interface SliderProps {
   idlePeriods?: IdlePeriod[];
   typingDensity?: TypingDensity[];
   wordCountData?: WordCountData[];
+  showCopyEvents?: boolean;
+  isPlaying?: boolean;
+  initialSpeed?: number;
 }
 
 export default function SliderComponent({
@@ -49,16 +52,27 @@ export default function SliderComponent({
   timelineEvents = [],
   typingSessions = [],
   idlePeriods = [],
-  wordCountData = []
+  wordCountData = [],
+  showCopyEvents = false,
+  isPlaying = false,
+  initialSpeed = 1.5
 }: SliderProps) {
   const [isClient, setIsClient] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  const [selectedSpeed, setSelectedSpeed] = useState(speeds[2]);
+  const [playing, setPlaying] = useState(isPlaying);
+  const [selectedSpeed, setSelectedSpeed] = useState(() => {
+    const found = speeds.find(s => s.value === initialSpeed);
+    return found || speeds[2]; // default to 1.5x if not found
+  });
   const [hoveredEvent, setHoveredEvent] = useState<{label: string, time: string, x: number, y: number} | null>(null);
-  const [isGraphExpanded, setIsGraphExpanded] = useState(false);
+  const [isGraphExpanded, setIsGraphExpanded] = useState(true);
   const [seekBarPosition, setSeekBarPosition] = useState({ left: 0, width: 0 });
   const seekBarRef = useRef<HTMLDivElement>(null);
   const seekBarContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sync playing state with external isPlaying prop
+  useEffect(() => {
+    setPlaying(isPlaying);
+  }, [isPlaying]);
 
   // Calculate max word count for graph scaling
   const maxWordCount = wordCountData.length > 0
@@ -466,7 +480,9 @@ export default function SliderComponent({
             </div>
 
             {/* Timeline event markers */}
-            {timelineEvents.map((event, index) => {
+            {timelineEvents
+              .filter(event => event.type !== 'copy' || showCopyEvents)
+              .map((event, index) => {
               const percentage = totalDuration > 0 ? (event.time / totalDuration) * 100 : 0;
 
               let color = '';
@@ -481,8 +497,14 @@ export default function SliderComponent({
                   label = 'Copy';
                   break;
                 case 'paste':
-                  color = '#8b5cf6';
-                  label = 'Paste';
+                  // Color based on destination: purple for editor, pink for GPT
+                  if (event.destination === 'gpt') {
+                    color = '#ec4899';
+                    label = 'Paste to GPT';
+                  } else {
+                    color = '#8b5cf6';
+                    label = 'Paste to Editor';
+                  }
                   break;
               }
 
@@ -490,7 +512,7 @@ export default function SliderComponent({
 
               return (
                 <div
-                  key={`timeline-marker-${event.type}-${index}`}
+                  key={`timeline-marker-${event.type}-${event.destination || ''}-${index}`}
                   className="absolute cursor-pointer"
                   style={{
                     left: `${percentage}%`,
