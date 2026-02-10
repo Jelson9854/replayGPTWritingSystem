@@ -38,7 +38,6 @@ interface SliderProps {
   typingDensity?: TypingDensity[];
   wordCountData?: WordCountData[];
   showCopyEvents?: boolean;
-  isPlaying?: boolean;
   initialSpeed?: number;
 }
 
@@ -54,11 +53,10 @@ export default function SliderComponent({
   idlePeriods = [],
   wordCountData = [],
   showCopyEvents = false,
-  isPlaying = false,
   initialSpeed = 1.5
 }: SliderProps) {
   const [isClient, setIsClient] = useState(false);
-  const [playing, setPlaying] = useState(isPlaying);
+  const [playing, setPlaying] = useState(false);
   const [selectedSpeed, setSelectedSpeed] = useState(() => {
     const found = speeds.find(s => s.value === initialSpeed);
     return found || speeds[2]; // default to 1.5x if not found
@@ -68,11 +66,6 @@ export default function SliderComponent({
   const [seekBarPosition, setSeekBarPosition] = useState({ left: 0, width: 0 });
   const seekBarRef = useRef<HTMLDivElement>(null);
   const seekBarContainerRef = useRef<HTMLDivElement>(null);
-
-  // Sync playing state with external isPlaying prop
-  useEffect(() => {
-    setPlaying(isPlaying);
-  }, [isPlaying]);
 
   // Calculate max word count for graph scaling
   const maxWordCount = wordCountData.length > 0

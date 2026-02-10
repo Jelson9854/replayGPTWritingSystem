@@ -82,7 +82,6 @@ function ReplayPage() {
   const totalDurationRef = useRef(0);
   const speed = useRef(speedParam);
   const playing = useRef(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const playCodeMirrorRef = useRef<ReplayHandle>(null);
   const codePlayerRef = useRef<CodePlay | null>(null);
   const [recording, setRecording] = useState<string>("");
@@ -108,12 +107,6 @@ function ReplayPage() {
   const progressAnimationFrameRef = useRef<number | null>(null);
   const isSeekingRef = useRef(false);
   const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Reset play state when participant changes
-  useEffect(() => {
-    playing.current = false;
-    setIsPlaying(false);
-  }, [participantParam]);
 
   const [participantStats, setParticipantStats] = useState<ParticipantStats>({
     po: 0,
@@ -722,11 +715,10 @@ function ReplayPage() {
   const handlePlayChange = (newIsPlaying: boolean) => {
     console.log("Play state changed to:", newIsPlaying);
     playing.current = newIsPlaying;
-    setIsPlaying(newIsPlaying);
 
     // Control CodePlay playback
     if (codePlayerRef.current) {
-      if (isPlaying) {
+      if (newIsPlaying) {
         codePlayerRef.current.play();
       } else {
         codePlayerRef.current.pause();
@@ -1110,7 +1102,6 @@ function ReplayPage() {
             typingDensity={typingDensity}
             wordCountData={wordCountData}
             showCopyEvents={showCopyEvents}
-            isPlaying={isPlaying}
             initialSpeed={speedParam}
           />
         </div>
