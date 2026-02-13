@@ -72,7 +72,9 @@ export default function SliderComponent({
     ? Math.max(...wordCountData.map(d => d.wordCount))
     : 0;
 
-  // Convert data for Recharts with interpolated points for continuous tooltip
+  // Convert data for Recharts using step-wise sampling.
+  // Word count snapshots represent state at each event time, so we keep
+  // the previous value until the next event instead of linearly interpolating.
   const chartData = (() => {
     if (wordCountData.length < 2 || totalDuration === 0) {
       return wordCountData.map(d => ({
@@ -83,31 +85,25 @@ export default function SliderComponent({
       }));
     }
 
-    // Create interpolated data points every 5 seconds for continuous tooltip
+    // Sample every 5 seconds and hold the last known word count.
     const interpolatedData: Array<{time: number, percentage: number, wordCount: number, timeFormatted: string}> = [];
     const interval = 5; // seconds
+    let dataIndex = 0;
+    let currentWordCount = wordCountData[0].wordCount;
 
     for (let t = 0; t <= totalDuration; t += interval) {
-      // Find surrounding data points
-      let wordCount = 0;
-      for (let i = 0; i < wordCountData.length - 1; i++) {
-        if (wordCountData[i].time <= t && wordCountData[i + 1].time >= t) {
-          // Linear interpolation
-          const ratio = wordCountData[i + 1].time === wordCountData[i].time
-            ? 0
-            : (t - wordCountData[i].time) / (wordCountData[i + 1].time - wordCountData[i].time);
-          wordCount = Math.round(wordCountData[i].wordCount + ratio * (wordCountData[i + 1].wordCount - wordCountData[i].wordCount));
-          break;
-        } else if (t >= wordCountData[wordCountData.length - 1].time) {
-          wordCount = wordCountData[wordCountData.length - 1].wordCount;
-          break;
-        }
+      while (
+        dataIndex + 1 < wordCountData.length &&
+        wordCountData[dataIndex + 1].time <= t
+      ) {
+        dataIndex += 1;
+        currentWordCount = wordCountData[dataIndex].wordCount;
       }
 
       interpolatedData.push({
         time: t,
         percentage: (t / totalDuration) * 100,
-        wordCount,
+        wordCount: currentWordCount,
         timeFormatted: `${Math.floor(t / 60)}:${Math.floor(t % 60).toString().padStart(2, '0')}`
       });
     }
@@ -218,26 +214,18 @@ export default function SliderComponent({
     onSeek(Math.max(0, Math.min(100, percentage)));
   };
 
-  // Interpolate word count for any given percentage
+  // Get word count at a position using step semantics (hold previous value).
   const interpolateWordCount = (percentage: number): number => {
-    if (chartData.length < 2) return 0;
-
-    // Find the two data points that surround this percentage
-    let lower = chartData[0];
-    let upper = chartData[chartData.length - 1];
-
-    for (let i = 0; i < chartData.length - 1; i++) {
-      if (chartData[i].percentage <= percentage && chartData[i + 1].percentage >= percentage) {
-        lower = chartData[i];
-        upper = chartData[i + 1];
+    if (chartData.length === 0) return 0;
+    let value = chartData[0].wordCount;
+    for (let i = 0; i < chartData.length; i++) {
+      if (chartData[i].percentage <= percentage) {
+        value = chartData[i].wordCount;
+      } else {
         break;
       }
     }
-
-    // Linear interpolation
-    if (upper.percentage === lower.percentage) return lower.wordCount;
-    const ratio = (percentage - lower.percentage) / (upper.percentage - lower.percentage);
-    return Math.round(lower.wordCount + ratio * (upper.wordCount - lower.wordCount));
+    return value;
   };
 
   const formatTime = (totalSeconds: number) => {
@@ -327,7 +315,7 @@ export default function SliderComponent({
                   strokeWidth={1.5}
                 />
                 <Area
-                  type="monotone"
+                  type="stepAfter"
                   dataKey="wordCount"
                   stroke="#3b82f6"
                   strokeWidth={2}
