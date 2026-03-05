@@ -1,10 +1,12 @@
 "use client"
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Select from "react-select";
 import Papa from "papaparse";
 import ParticipantStatsPanel from "@/components/participantStatsPanel";
 import { ParticipantStats } from "@/components/types";
+import { Suspense } from "react";
+import { TOKEN_MAP } from "@/lib/tokens";
 
 interface ParticipantOption extends Partial<ParticipantStats> {
   value: string;
@@ -14,11 +16,31 @@ interface ParticipantOption extends Partial<ParticipantStats> {
   race?: string;
 }
 
-export default function LandingPage() {
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LandingPage />
+    </Suspense>
+  );
+}
+
+function LandingPage() {
   const [participants, setParticipants] = useState<ParticipantOption[]>([]);
   const [selectedParticipant, setSelectedParticipant] = useState<ParticipantOption | null>(null);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // If a study token is present, resolve it and redirect immediately to the replay
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      const participant = TOKEN_MAP[token];
+      if (participant) {
+        router.replace(`/replay?participant=${participant}&locked=true`);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     setIsClient(true);

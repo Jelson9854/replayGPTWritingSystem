@@ -60,10 +60,19 @@ interface ParticipantOption {
   label: string;
 }
 
+import { TOKEN_MAP } from "@/lib/tokens";
+
 function ReplayPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const participantParam = searchParams.get("participant") || "p1";
+
+  // Support direct token links (/replay?token=X1-xxxx) as well as resolved participant links
+  const tokenParam = searchParams.get("token");
+  const isLocked = tokenParam !== null || searchParams.get("locked") === "true";
+  const resolvedParticipant = tokenParam
+    ? (TOKEN_MAP[tokenParam] ?? "p1")
+    : (searchParams.get("participant") || "p1");
+  const participantParam = resolvedParticipant;
   const essayNum = parseInt(participantParam.replace("p", "")) - 1; // Convert 1-based URL to 0-based index
 
   // URL parameter defaults for view settings
@@ -107,6 +116,7 @@ function ReplayPage() {
   const progressAnimationFrameRef = useRef<number | null>(null);
   const isSeekingRef = useRef(false);
   const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const codePlayEndedRef = useRef<{ endTimeMs: number; wallClockAt: number } | null>(null);
 
   const [participantStats, setParticipantStats] = useState<ParticipantStats>({
     po: 0,
@@ -129,7 +139,21 @@ function ReplayPage() {
 
     const updateProgress = () => {
       if (totalDurationRef.current > 0 && codePlayerRef.current) {
-        const currentTimeMs = codePlayerRef.current.getCurrentTime() || 0;
+        let currentTimeMs: number;
+
+        // If CodePlay has finished all operations, continue advancing time using wall clock
+        if (codePlayEndedRef.current && playing.current) {
+          const elapsed = (Date.now() - codePlayEndedRef.current.wallClockAt) * speed.current;
+          currentTimeMs = Math.min(
+            codePlayEndedRef.current.endTimeMs + elapsed,
+            totalDurationRef.current * 1000,
+          );
+        } else if (codePlayEndedRef.current) {
+          currentTimeMs = codePlayEndedRef.current.endTimeMs;
+        } else {
+          currentTimeMs = codePlayerRef.current.getCurrentTime() || 0;
+        }
+
         const currentTimeSec = currentTimeMs / 1000;
         const progress = (currentTimeSec / totalDurationRef.current) * 100;
 
@@ -590,7 +614,15 @@ function ReplayPage() {
         speed: speed.current,
       });
       codePlayerRef.current = codePlayer;
+      codePlayEndedRef.current = null;
       codePlayer.addOperations(combinedRecording);
+
+      // When CodePlay runs out of editor operations, record the time so progress keeps advancing
+      codePlayer.on('end', () => {
+        const endTimeMs = codePlayer.getCurrentTime() || 0;
+        codePlayEndedRef.current = { endTimeMs, wallClockAt: Date.now() };
+        console.log(`CodePlay ended at ${endTimeMs}ms, continuing progress via wall clock`);
+      });
 
       // Get total duration from last event in data (includes all events, not just editor)
       const duration = data.length > 0 ? data[data.length - 1].time : 0;
@@ -641,8 +673,19 @@ function ReplayPage() {
       if (!messagePlaybackActive.current) return;
 
       if (codePlayerRef.current) {
-        // Get current time from CodePlay
-        const currentTimeMs = codePlayerRef.current.getCurrentTime() || 0;
+        // Get current time, using wall clock if CodePlay has ended
+        let currentTimeMs: number;
+        if (codePlayEndedRef.current && playing.current) {
+          const elapsed = (Date.now() - codePlayEndedRef.current.wallClockAt) * speed.current;
+          currentTimeMs = Math.min(
+            codePlayEndedRef.current.endTimeMs + elapsed,
+            totalDurationRef.current * 1000,
+          );
+        } else if (codePlayEndedRef.current) {
+          currentTimeMs = codePlayEndedRef.current.endTimeMs;
+        } else {
+          currentTimeMs = codePlayerRef.current.getCurrentTime() || 0;
+        }
         const currentTimeSec = currentTimeMs / 1000;
 
         // Find messages that should be visible at current time
@@ -715,6 +758,20 @@ function ReplayPage() {
   const handlePlayChange = (newIsPlaying: boolean) => {
     console.log("Play state changed to:", newIsPlaying);
     playing.current = newIsPlaying;
+
+    // If CodePlay has ended, handle pause/resume for wall-clock-based progress
+    if (codePlayEndedRef.current) {
+      if (newIsPlaying) {
+        // Resuming: reset wall clock so elapsed time continues from where we left off
+        codePlayEndedRef.current.wallClockAt = Date.now();
+      } else {
+        // Pausing: freeze the end time at the current position
+        const elapsed = (Date.now() - codePlayEndedRef.current.wallClockAt) * speed.current;
+        codePlayEndedRef.current.endTimeMs += elapsed;
+        codePlayEndedRef.current.wallClockAt = Date.now();
+      }
+      return;
+    }
 
     // Control CodePlay playback
     if (codePlayerRef.current) {
@@ -833,8 +890,24 @@ function ReplayPage() {
       speed: speed.current,
     });
 
-    newCodePlayer.addOperations(newRecording);
-    console.log(`Added operations to new CodePlayer`);
+    // Only add operations if there are remaining editor events
+    const hasOperations = newRecording !== "[]";
+    codePlayEndedRef.current = null;
+    if (hasOperations) {
+      newCodePlayer.addOperations(newRecording);
+      console.log(`Added operations to new CodePlayer`);
+    } else {
+      // No editor operations left — immediately mark as ended so progress keeps advancing
+      codePlayEndedRef.current = { endTimeMs: targetTimeMs, wallClockAt: Date.now() };
+      console.log(`No remaining editor operations after seek point, continuing via wall clock`);
+    }
+
+    // When CodePlay runs out of editor operations, record the time so progress keeps advancing
+    newCodePlayer.on('end', () => {
+      const endTimeMs = newCodePlayer.getCurrentTime() || 0;
+      codePlayEndedRef.current = { endTimeMs, wallClockAt: Date.now() };
+      console.log(`CodePlay ended at ${endTimeMs}ms after seek, continuing progress via wall clock`);
+    });
 
     // Set CodePlayer's internal time to match seek position
     newCodePlayer.lastOperationTime = targetTimeMs;
@@ -926,37 +999,39 @@ function ReplayPage() {
                 Interactive playback of essay writing sessions with ChatGPT
               </p>
             </div>
-            <div className="w-96">
-              {isClient ? (
-                <Select
-                  options={participants}
-                  value={selectedParticipant}
-                  onChange={handleParticipantChange}
-                  isSearchable={true}
-                  className="text-black"
-                  styles={{
-                    control: (provided) => ({
-                      ...provided,
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "0.5rem",
-                      padding: "0.25rem",
-                      boxShadow: "none",
-                      "&:hover": {
-                        border: "1px solid #6366f1",
-                      },
-                    }),
-                    menu: (provided) => ({
-                      ...provided,
-                      zIndex: 9999,
-                    }),
-                  }}
-                />
-              ) : (
-                <div className="border border-gray-300 rounded-lg p-3 bg-gray-50">
-                  Loading...
-                </div>
-              )}
-            </div>
+            {!isLocked && (
+              <div className="w-96">
+                {isClient ? (
+                  <Select
+                    options={participants}
+                    value={selectedParticipant}
+                    onChange={handleParticipantChange}
+                    isSearchable={true}
+                    className="text-black"
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0.5rem",
+                        padding: "0.25rem",
+                        boxShadow: "none",
+                        "&:hover": {
+                          border: "1px solid #6366f1",
+                        },
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 9999,
+                      }),
+                    }}
+                  />
+                ) : (
+                  <div className="border border-gray-300 rounded-lg p-3 bg-gray-50">
+                    Loading...
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </header>

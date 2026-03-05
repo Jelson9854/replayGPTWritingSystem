@@ -450,7 +450,7 @@ export default function SliderComponent({
 
               {/* Progress overlay */}
               <div
-                className="absolute h-full bg-white/40"
+                className="absolute h-full bg-white/25"
                 style={{
                   width: `${currentProgress}%`,
                   transition: 'width 0.1s ease',
