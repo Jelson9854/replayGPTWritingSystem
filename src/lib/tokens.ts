@@ -4,9 +4,9 @@
 export const TOKEN_MAP: Record<string, string> = {
   // Group A
   "A1-3f9a": "p12",
-  "A2-7b2e": "p7",
+  "A2-7b2e": "p6",
   "A3-c514": "p31",
-  "A4-8d63": "p33",
+  "A4-8d63": "p32",
   // Group P
   "P1-2a7f": "p39",
   "P2-f1c9": "p36",
@@ -19,13 +19,13 @@ export const TOKEN_MAP: Record<string, string> = {
   "T4-a2f6": "p52",
   // Group R
   "R1-d5e1": "p44",
-  "R2-7f4c": "p37",
+  "R2-7f4c": "p2",
   "R3-1b8d": "p19",
   "R4-e9a3": "p27",
   // Group M
   "M1-5c7f": "p35",
   "M2-2d4b": "p43",
-  "M3-8e6c": "p58",
+  "M3-8e6c": "p51",
   "M4-f3a1": "p45",
   // Group N (placeholder — update participant IDs when known)
   "N1-4b9e": "p3",
