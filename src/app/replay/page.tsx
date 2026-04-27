@@ -62,6 +62,14 @@ interface ParticipantOption {
 
 import { TOKEN_MAP } from "@/lib/tokens";
 
+function getWriterType(participantData: any): string {
+  const pct = parseFloat(participantData["User Final %"]) || 0;
+  if (pct >= 95) return "Lead Author";
+  if (pct >= 60) return "Collaborator";
+  if (pct >= 10) return "Drafter";
+  return "Vibe Writer";
+}
+
 function ReplayPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -210,9 +218,10 @@ function ReplayPage() {
             );
 
             if (participantData) {
+              const userType = getWriterType(participantData);
               return {
                 value: `p${i + 1}`,
-                label: `Participant ${i + 1} (${participantData.Race}, ${participantData.Gender}, ${participantData.Age})`,
+                label: `Participant ${i + 1} - ${userType} (${participantData.Gender?.toLowerCase()}, ${participantData.Age}, ${participantData.Race?.toLowerCase()})`,
               };
             }
 
@@ -1016,7 +1025,7 @@ function ReplayPage() {
                         padding: "0.25rem",
                         boxShadow: "none",
                         "&:hover": {
-                          border: "1px solid #6366f1",
+                          border: "1px solid #861F41",
                         },
                       }),
                       menu: (provided) => ({
@@ -1063,7 +1072,7 @@ function ReplayPage() {
         {/* Toggle Prompt button */}
         <button
           onClick={() => setisPromptVisible(!isPromptVisible)}
-          className={`bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-3 h-fit flex items-center justify-center shadow-xl hover:shadow-2xl transition-all z-50 flex-shrink-0 self-start ${
+          className={`bg-[#861F41] hover:bg-[#6B1A33] text-white rounded-xl px-4 py-3 h-fit flex items-center justify-center shadow-xl hover:shadow-2xl transition-all z-50 flex-shrink-0 self-start ${
             isPromptVisible ? "mx-2" : "mr-2"
           }`}
         >
@@ -1111,7 +1120,7 @@ function ReplayPage() {
         {/* Toggle Graphs button */}
         <button
           onClick={() => setIsGraphsVisible(!isGraphsVisible)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-3 h-fit w-28 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all z-50 flex-shrink-0 self-start ml-2"
+          className="bg-[#861F41] hover:bg-[#6B1A33] text-white rounded-xl px-4 py-3 h-fit w-28 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all z-50 flex-shrink-0 self-start ml-2"
         >
           <span className="text-sm font-medium">
             {isGraphsVisible ? "Hide →" : "Participant Stats"}
@@ -1165,6 +1174,7 @@ function ReplayPage() {
         {/* Controls Section */}
         <div className="flex items-center w-full pb-3 pt-0 pr-24">
           <SliderComponent
+            key={essayNum}
             onSpeedChange={handleSpeedChange}
             onPlayChange={handlePlayChange}
             onSeek={handleSeek}
@@ -1184,7 +1194,7 @@ function ReplayPage() {
         {/* Toggle Legend button - Fixed position */}
         <button
           onClick={() => setIsLegendVisible(!isLegendVisible)}
-          className="absolute right-6 bottom-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 flex items-center justify-center shadow-lg hover:shadow-xl transition-all"
+          className="absolute right-6 bottom-3 bg-[#E5751F] hover:bg-[#C4611A] text-white rounded-lg px-4 py-2 flex items-center justify-center shadow-lg hover:shadow-xl transition-all"
         >
           <span className="text-sm font-medium">
             Legend {isLegendVisible ? "▼" : "▲"}

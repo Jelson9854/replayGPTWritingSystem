@@ -290,8 +290,8 @@ export default function SliderComponent({
               >
                 <defs>
                   <linearGradient id="wordCountGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                    <stop offset="5%" stopColor="#861F41" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#861F41" stopOpacity={0.05}/>
                   </linearGradient>
                 </defs>
                 <XAxis
@@ -317,11 +317,11 @@ export default function SliderComponent({
                 <Area
                   type="stepAfter"
                   dataKey="wordCount"
-                  stroke="#3b82f6"
+                  stroke="#861F41"
                   strokeWidth={2}
                   fill="url(#wordCountGradient)"
                   isAnimationActive={false}
-                  activeDot={{ r: 4, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
+                  activeDot={{ r: 4, fill: '#861F41', stroke: '#fff', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -414,7 +414,7 @@ export default function SliderComponent({
           >
             {/* Activity segments container */}
             <div className="absolute inset-0 rounded overflow-hidden">
-              {/* Typing sessions (blue) */}
+              {/* Typing sessions (maroon) */}
               {typingSessions.map((session, index) => {
                 const startPercent = totalDuration > 0 ? (session.startTime / totalDuration) * 100 : 0;
                 const endPercent = totalDuration > 0 ? (session.endTime / totalDuration) * 100 : 0;
@@ -422,7 +422,7 @@ export default function SliderComponent({
                 return (
                   <div
                     key={`typing-${index}`}
-                    className="absolute h-full bg-blue-500"
+                    className="absolute h-full bg-[#861F41]"
                     style={{
                       left: `${startPercent}%`,
                       width: `${Math.max(width, 0.5)}%`,
@@ -519,7 +519,7 @@ export default function SliderComponent({
             })}
 
             {/* Circle handle */}
-            <div className="handle absolute w-3 h-3 bg-blue-500 rounded-full shadow-md"
+            <div className="handle absolute w-3 h-3 bg-[#861F41] rounded-full shadow-md"
               style={{
                 left: `${currentProgress}%`,
                 top: '50%',
@@ -543,7 +543,7 @@ export default function SliderComponent({
           }}
           className={`ml-2 mr-2 px-2 py-1.5 rounded-lg flex items-center gap-1 transition-all ${
             isGraphExpanded
-              ? 'bg-blue-600 text-white'
+              ? 'bg-[#861F41] text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
           title={isGraphExpanded ? 'Hide word count graph' : 'Show word count graph'}

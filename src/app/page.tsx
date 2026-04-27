@@ -21,21 +21,18 @@ interface ParticipantOption extends Partial<ParticipantStats> {
 const ABSTRACT = `With the rapid adoption of AI writing assistants in education, educators and researchers need empirical evidence to understand the impact on student writing and inform effective pedagogical design. Despite widespread use, we lack systematic understanding of how students engage with these tools during authentic writing tasks: when they seek assistance, what they ask, and how they incorporate AI-generated content into their essays. This gap limits evidence-based policy development and rigorous evaluation of generative AI's learning effects. To address this gap, we introduce NIRVANA, a dataset capturing how university students use generative AI while writing an analytical essay. The dataset includes 77 students who completed an essay task with access to ChatGPT, recording keystroke-level writing behavior, full ChatGPT conversation histories, and all text copied from ChatGPT, enabling a complete reconstruction of the writing process and revealing how AI assistance shapes student work. Our analysis identifies key behavioral patterns, including variation in ChatGPT query frequency and its relationship to essay characteristics such as length and readability. We identify four writing profiles based on students' contribution and revision patterns: Lead Authors, Collaborators, Drafters, and Vibe Writers. To support deeper investigation, we developed a replay interface that reconstructs the writing process; qualitative analysis of sampled replays demonstrates how this tool enables systematic examination of student-AI interactions.`;
 
 const BIBTEX = `@inproceedings{nirvana2025,
-  title     = {NIRVANA: A Comprehensive Dataset for Reproducing How Students Use Generative AI for Essay Writing},
-  author    = {Jelson, Andrew and Manesh, Daniel and Lee, Sangwook and Jang, Alice and Dunlap, Daniel and Maddox, Tamara and Kim, Young-Ho and Lee, Sang Won},
+  title     = {NIRVANA: A Dataset for Reproducing How Students Use Generative AI for Essay Writing},
+  author    = {EchoLab, Virginia Tech},
   year      = {2025}
 }`;
 
-const AUTHORS = [
-  { name: "Andrew Jelson",   affil: "Virginia Tech",           location: "Blacksburg, VA" },
-  { name: "Daniel Manesh",   affil: "Virginia Tech",           location: "Blacksburg, VA" },
-  { name: "Sangwook Lee",    affil: "Virginia Tech",           location: "Blacksburg, VA" },
-  { name: "Alice Jang",      affil: "Virginia Tech",           location: "Blacksburg, VA" },
-  { name: "Daniel Dunlap",   affil: "Virginia Tech",           location: "Blacksburg, VA" },
-  { name: "Tamara Maddox",   affil: "George Mason University", location: "Fairfax, VA" },
-  { name: "Young-Ho Kim",    affil: "NAVER AI Lab",            location: "Seongnam, South Korea" },
-  { name: "Sang Won Lee",    affil: "Virginia Tech",           location: "Blacksburg, VA" },
-];
+function getWriterType(participantData: any): string {
+  const pct = parseFloat(participantData["User Final %"]) || 0;
+  if (pct >= 95) return "Lead Author";
+  if (pct >= 60) return "Collaborator";
+  if (pct >= 10) return "Drafter";
+  return "Vibe Writer";
+}
 
 const WRITER_PROFILES = [
   {
@@ -134,7 +131,7 @@ const CASE_STUDIES = [
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block text-xs font-semibold tracking-widest uppercase text-indigo-500 mb-3">
+    <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#861F41] mb-3">
       {children}
     </span>
   );
@@ -157,7 +154,7 @@ function StatCard({
 }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col items-center text-center">
-      <span className="text-4xl font-extrabold text-indigo-600">{value}</span>
+      <span className="text-4xl font-extrabold text-[#861F41]">{value}</span>
       <span className="mt-2 text-sm font-semibold text-gray-700">{label}</span>
       {sub && <span className="mt-1 text-xs text-gray-400">{sub}</span>}
     </div>
@@ -172,33 +169,32 @@ function PaperHero() {
   };
 
   return (
-    <section className="bg-gradient-to-br from-indigo-950 via-indigo-900 to-purple-900 text-white py-24 px-6">
+    <section className="bg-gradient-to-br from-[#4A1225] via-[#6B1A33] to-[#861F41] text-white py-24 px-6">
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight mb-4 tracking-tight">
           NIRVANA
         </h1>
-        <p className="text-xl sm:text-2xl text-indigo-200 font-medium max-w-3xl mx-auto mb-6 leading-relaxed">
-          A Comprehensive Dataset for Reproducing How Students Use Generative AI
-          for Essay Writing
+        <p className="text-xl sm:text-2xl text-[#F5C5A3] font-medium max-w-3xl mx-auto mb-8 leading-relaxed">
+          A Dataset for Reproducing How Students Use Generative AI for Essay Writing
         </p>
-        {/* Author grid */}
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-10">
-          {AUTHORS.map((a) => (
-            <div key={a.name} className="text-center">
-              <div className="text-white font-medium text-sm">
-                {a.name}
-              </div>
-              <div className="text-indigo-300 text-xs">{a.affil}</div>
-              <div className="text-indigo-400 text-xs">{a.location}</div>
-            </div>
-          ))}
+        {/* EchoLab branding */}
+        <div className="flex flex-col items-center gap-2 mb-10">
+          <div className="bg-white rounded-2xl px-6 py-3 shadow-lg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://wordpress.cs.vt.edu/echolab/wp-content/uploads/sites/105/2018/09/cropped-cropped-cropped-EchoLab-LR-White-Background_Final.png"
+              alt="EchoLab"
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+          <div className="text-[#F5C5A3] text-sm">Virginia Tech · Blacksburg, VA</div>
         </div>
         <div className="flex flex-wrap gap-3 justify-center">
           <a
             href="https://arxiv.org/abs/2604.07344"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-6 py-3 bg-indigo-700 border border-indigo-500 text-white font-semibold rounded-lg shadow hover:bg-indigo-600 transition-colors duration-200"
+            className="px-6 py-3 bg-[#861F41]/60 border border-[#E5751F]/60 text-white font-semibold rounded-lg shadow hover:bg-[#E5751F]/30 transition-colors duration-200"
           >
             arXiv
           </a>
@@ -206,19 +202,19 @@ function PaperHero() {
             href="https://arxiv.org/pdf/2604.07344"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-6 py-3 bg-indigo-700 border border-indigo-500 text-white font-semibold rounded-lg shadow hover:bg-indigo-600 transition-colors duration-200"
+            className="px-6 py-3 bg-[#861F41]/60 border border-[#E5751F]/60 text-white font-semibold rounded-lg shadow hover:bg-[#E5751F]/30 transition-colors duration-200"
           >
             Paper
           </a>
           <button
-            onClick={() => scrollTo("bibtex")}
-            className="px-6 py-3 bg-indigo-700 border border-indigo-500 text-white font-semibold rounded-lg shadow hover:bg-indigo-600 transition-colors duration-200"
+            onClick={() => scrollTo("publications")}
+            className="px-6 py-3 bg-[#861F41]/60 border border-[#E5751F]/60 text-white font-semibold rounded-lg shadow hover:bg-[#E5751F]/30 transition-colors duration-200"
           >
             Cite
           </button>
           <button
             onClick={() => scrollTo("replay-tool")}
-            className="px-6 py-3 bg-indigo-700 border border-indigo-500 text-white font-semibold rounded-lg shadow hover:bg-indigo-600 transition-colors duration-200"
+            className="px-6 py-3 bg-[#861F41]/60 border border-[#E5751F]/60 text-white font-semibold rounded-lg shadow hover:bg-[#E5751F]/30 transition-colors duration-200"
           >
             Try the Replay System ↓
           </button>
@@ -233,9 +229,10 @@ function StickyNav() {
     { label: "Abstract", id: "abstract" },
     { label: "Dataset", id: "dataset" },
     { label: "Findings", id: "findings" },
-    { label: "Writer Profiles", id: "profiles" },
     { label: "Metrics", id: "metrics" },
+    { label: "Writer Profiles", id: "profiles" },
     { label: "Replay System", id: "replay-system" },
+    { label: "Publications", id: "publications" },
     { label: "Try It", id: "replay-tool" },
   ];
 
@@ -251,7 +248,7 @@ function StickyNav() {
             <li key={link.id}>
               <button
                 onClick={() => scrollTo(link.id)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors duration-150"
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-[#861F41] hover:bg-[#861F41]/10 rounded-md transition-colors duration-150"
               >
                 {link.label}
               </button>
@@ -319,7 +316,7 @@ function DatasetSection() {
               "Participant demographics: age, gender, race",
             ].map((item) => (
               <li key={item} className="flex gap-2 items-start">
-                <span className="mt-0.5 text-indigo-500 shrink-0">✓</span>
+                <span className="mt-0.5 text-[#861F41] shrink-0">✓</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -375,9 +372,9 @@ function FindingsSection() {
               key={c.y}
               className="bg-gray-50 border border-gray-200 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-4"
             >
-              <div className="shrink-0 text-center bg-indigo-600 text-white rounded-xl px-5 py-4 sm:w-36">
+              <div className="shrink-0 text-center bg-[#861F41] text-white rounded-xl px-5 py-4 sm:w-36">
                 <div className="text-2xl font-extrabold">ρ = {c.rho}</div>
-                <div className="text-xs text-indigo-200 mt-1">{c.p}</div>
+                <div className="text-xs text-[#F5C5A3] mt-1">{c.p}</div>
               </div>
               <div>
                 <div className="text-sm font-semibold text-gray-500 mb-1">
@@ -453,14 +450,14 @@ function MetricsSection() {
         </p>
         <div className="grid sm:grid-cols-2 gap-6">
           {/* HCR */}
-          <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-indigo-900 mb-1">
+          <div className="bg-[#FDF2F5] border border-[#861F41]/30 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-[#861F41] mb-1">
               Human Contribution Ratio
             </h3>
-            <span className="text-xs text-indigo-500 font-semibold tracking-wide uppercase">
+            <span className="text-xs text-[#861F41] font-semibold tracking-wide uppercase">
               HCR
             </span>
-            <div className="mt-4 mb-4 bg-white rounded-lg border border-indigo-100 px-4 py-3 font-mono text-sm text-gray-800">
+            <div className="mt-4 mb-4 bg-white rounded-lg border border-[#861F41]/20 px-4 py-3 font-mono text-sm text-gray-800">
               HCR = (HA − HD) / [(HA − HD) + (GP − GD)]
             </div>
             <p className="text-sm text-gray-700 leading-relaxed mb-3">
@@ -477,14 +474,14 @@ function MetricsSection() {
           </div>
 
           {/* HER */}
-          <div className="bg-purple-50 border border-purple-200 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-purple-900 mb-1">
+          <div className="bg-[#FFF7F0] border border-[#E5751F]/30 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-[#7A3000] mb-1">
               Human Edit Ratio
             </h3>
-            <span className="text-xs text-purple-500 font-semibold tracking-wide uppercase">
+            <span className="text-xs text-[#E5751F] font-semibold tracking-wide uppercase">
               HER
             </span>
-            <div className="mt-4 mb-4 bg-white rounded-lg border border-purple-100 px-4 py-3 font-mono text-sm text-gray-800">
+            <div className="mt-4 mb-4 bg-white rounded-lg border border-[#E5751F]/20 px-4 py-3 font-mono text-sm text-gray-800">
               HER = (HA + HD + GD) / (HA + HD + GP + GD)
             </div>
             <p className="text-sm text-gray-700 leading-relaxed mb-3">
@@ -511,7 +508,7 @@ function MetricsSection() {
             { sym: "GD", def: "ChatGPT words deleted by human" },
           ].map((v) => (
             <div key={v.sym}>
-              <span className="font-mono font-bold text-indigo-700">
+              <span className="font-mono font-bold text-[#861F41]">
                 {v.sym}
               </span>
               <span className="text-gray-500"> — {v.def}</span>
@@ -548,7 +545,7 @@ function ReplaySystemSection() {
             "Summary statistics for each session (word counts, query count, survey scores)",
           ].map((f) => (
             <li key={f} className="flex gap-2 items-start">
-              <span className="mt-0.5 text-indigo-500 shrink-0">→</span>
+              <span className="mt-0.5 text-[#861F41] shrink-0">→</span>
               <span>{f}</span>
             </li>
           ))}
@@ -584,7 +581,7 @@ function ReplaySystemSection() {
 
         <button
           onClick={() => scrollTo("replay-tool")}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow transition-colors duration-200"
+          className="px-6 py-3 bg-[#861F41] hover:bg-[#6B1A33] text-white font-semibold rounded-lg shadow transition-colors duration-200"
         >
           Try the Replay System ↓
         </button>
@@ -593,7 +590,7 @@ function ReplaySystemSection() {
   );
 }
 
-function BibTeXSection() {
+function PublicationsSection() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -604,10 +601,53 @@ function BibTeXSection() {
   };
 
   return (
-    <section id="bibtex" className="py-16 px-6 bg-white">
+    <section id="publications" className="py-16 px-6 bg-white">
       <div className="max-w-3xl mx-auto">
-        <SectionLabel>Citation</SectionLabel>
-        <SectionHeading>BibTeX</SectionHeading>
+        <SectionLabel>Publications</SectionLabel>
+        <SectionHeading>Publications & Citation</SectionHeading>
+
+        {/* Publication card */}
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8">
+          <div className="flex items-start gap-3 mb-3">
+            <span className="shrink-0 mt-1 text-xs font-bold bg-[#861F41] text-white px-2 py-0.5 rounded">
+              2025
+            </span>
+            <h3 className="text-base font-semibold text-gray-900 leading-snug">
+              NIRVANA: A Dataset for Reproducing How Students Use Generative AI for Essay Writing
+            </h3>
+          </div>
+          <div className="flex items-center gap-3 mb-4 pl-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://wordpress.cs.vt.edu/echolab/wp-content/uploads/sites/105/2018/09/cropped-cropped-cropped-EchoLab-LR-White-Background_Final.png"
+              alt="EchoLab"
+              className="h-6 w-auto object-contain"
+            />
+            <span className="text-gray-400">·</span>
+            <span className="text-sm text-gray-500">Virginia Tech</span>
+          </div>
+          <div className="pl-8 flex gap-2">
+            <a
+              href="https://arxiv.org/abs/2604.07344"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-3 py-1 rounded-full bg-[#861F41]/10 text-[#861F41] font-medium hover:bg-[#861F41]/20 transition-colors"
+            >
+              arXiv
+            </a>
+            <a
+              href="https://arxiv.org/pdf/2604.07344"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-3 py-1 rounded-full bg-[#861F41]/10 text-[#861F41] font-medium hover:bg-[#861F41]/20 transition-colors"
+            >
+              PDF
+            </a>
+          </div>
+        </div>
+
+        {/* BibTeX */}
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">BibTeX Citation</h3>
         <div className="relative bg-gray-900 rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-gray-700">
             <span className="text-xs text-gray-400 font-mono">bibtex</span>
@@ -637,10 +677,10 @@ function AcademicPage() {
       <AbstractSection />
       <DatasetSection />
       <FindingsSection />
-      <WriterProfilesSection />
       <MetricsSection />
+      <WriterProfilesSection />
       <ReplaySystemSection />
-      <BibTeXSection />
+      <PublicationsSection />
 
       {/* ── Replay Tool ── */}
       <section
@@ -648,7 +688,7 @@ function AcademicPage() {
         className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-t border-gray-200"
       >
         <div className="max-w-7xl mx-auto px-6 pt-12 pb-4 text-center">
-          <span className="inline-block text-xs font-semibold tracking-widest uppercase text-indigo-500 mb-3">
+          <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#861F41] mb-3">
             Interactive Tool
           </span>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -710,9 +750,10 @@ function LandingPage() {
           const participantData: any = result.data.find((row: any) => parseInt(row.id) === i);
 
           if (participantData) {
+            const userType = getWriterType(participantData);
             return {
               value: `p${i + 1}`,
-              label: `Participant ${i + 1} (${participantData.Race}, ${participantData.Gender}, ${participantData.Age})`,
+              label: `Participant ${i + 1} - ${userType} (${participantData.Gender?.toLowerCase()}, ${participantData.Age}, ${participantData.Race?.toLowerCase()})`,
               gender: participantData.Gender,
               age: participantData.Age,
               race: participantData.Race,
@@ -736,7 +777,7 @@ function LandingPage() {
         });
 
         setParticipants(participantOptions);
-        setSelectedParticipant(participantOptions[0]);
+        setSelectedParticipant(null);
       } catch (error) {
         console.error("Error loading participant info:", error);
         // Fallback to basic participants without demographic info
@@ -745,7 +786,7 @@ function LandingPage() {
           label: `Participant ${i + 1}`,
         }));
         setParticipants(basicParticipants);
-        setSelectedParticipant(basicParticipants[0]);
+        setSelectedParticipant(null);
       }
     };
 
@@ -827,7 +868,7 @@ function LandingPage() {
                         padding: "0.25rem",
                         boxShadow: "none",
                         "&:hover": {
-                          border: "1px solid #6366f1",
+                          border: "1px solid #861F41",
                         },
                       }),
                       menu: (provided) => ({
@@ -839,7 +880,7 @@ function LandingPage() {
                 </div>
                 <button
                   onClick={handleRandomParticipant}
-                  className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium rounded-lg border border-purple-300 transition-colors duration-200"
+                  className="px-4 py-2 bg-[#E5751F]/10 hover:bg-[#E5751F]/20 text-[#7A3000] font-medium rounded-lg border border-[#E5751F]/40 transition-colors duration-200"
                   title="Select random participant"
                 >
                   Random
@@ -876,7 +917,7 @@ function LandingPage() {
         {/* Start Button */}
         <button
           onClick={handleStart}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+          className="w-full bg-[#861F41] hover:bg-[#6B1A33] text-white font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
         >
           Start Replay Session
         </button>
