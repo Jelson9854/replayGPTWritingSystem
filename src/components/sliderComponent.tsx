@@ -164,12 +164,32 @@ export default function SliderComponent({
     onPlayChange(newPlayingState);
   };
 
+  const visibleEvents = timelineEvents.filter(e => e.type !== 'copy' || showCopyEvents);
+
   const handleJumpToStart = () => {
-    onSeek(0);
+    if (totalDuration === 0) { onSeek(0); return; }
+    const currentTimeSec = (currentProgress / 100) * totalDuration;
+    const prev = [...visibleEvents]
+      .filter(e => e.time < currentTimeSec - 0.1)
+      .sort((a, b) => b.time - a.time)[0];
+    if (prev) {
+      onSeek((prev.time / totalDuration) * 100);
+    } else {
+      onSeek(0);
+    }
   };
 
   const handleJumpToEnd = () => {
-    onSeek(100);
+    if (totalDuration === 0) { onSeek(100); return; }
+    const currentTimeSec = (currentProgress / 100) * totalDuration;
+    const next = [...visibleEvents]
+      .filter(e => e.time > currentTimeSec + 0.1)
+      .sort((a, b) => a.time - b.time)[0];
+    if (next) {
+      onSeek((next.time / totalDuration) * 100);
+    } else {
+      onSeek(100);
+    }
   };
 
   useEffect(() => {
@@ -343,7 +363,7 @@ export default function SliderComponent({
           id="jump-to-start"
           onClick={handleJumpToStart}
           className="px-2"
-          title="Jump to Start"
+          title="Previous Event"
         >
           <FaFastBackward size={19} />
         </button>
@@ -351,7 +371,7 @@ export default function SliderComponent({
           id="jump-to-end"
           onClick={handleJumpToEnd}
           className="px-2"
-          title="Jump to End"
+          title="Next Event"
         >
           <FaFastForward size={19} />
         </button>
