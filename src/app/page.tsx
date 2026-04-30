@@ -26,12 +26,31 @@ const BIBTEX = `@inproceedings{nirvana2025,
   year      = {2025}
 }`;
 
-function getWriterType(participantData: any): string {
-  const pct = parseFloat(participantData["User Final %"]) || 0;
-  if (pct >= 95) return "Lead Author";
-  if (pct >= 60) return "Collaborator";
-  if (pct >= 10) return "Drafter";
-  return "Vibe Writer";
+const PARTICIPANT_ROLES: Record<number, string> = {
+  1: "Collaborator",  2: "Collaborator",  3: "Lead Author",  4: "Lead Author",
+  5: "Lead Author",   6: "Vibe Writer",   7: "Collaborator", 8: "Drafter",
+  9: "Lead Author",  10: "Drafter",      11: "Collaborator",12: "Collaborator",
+ 13: "Lead Author",  14: "Vibe Writer",  15: "Lead Author", 16: "Collaborator",
+ 17: "Lead Author",  18: "Lead Author",  19: "Drafter",     20: "Collaborator",
+ 21: "Collaborator", 22: "Lead Author",  23: "Lead Author", 24: "Lead Author",
+ 25: "Lead Author",  26: "Collaborator", 27: "Lead Author", 28: "Collaborator",
+ 29: "Lead Author",  30: "Lead Author",  31: "Collaborator",32: "Vibe Writer",
+ 33: "Vibe Writer",  34: "Vibe Writer",  35: "Collaborator",36: "Lead Author",
+ 37: "Lead Author",  38: "Vibe Writer",  39: "Lead Author", 40: "Lead Author",
+ 41: "Lead Author",  42: "Vibe Writer",  43: "Drafter",     44: "Lead Author",
+ 45: "Collaborator", 46: "Lead Author",  47: "Lead Author", 48: "Lead Author",
+ 49: "Vibe Writer",  50: "Lead Author",  51: "Drafter",     52: "Lead Author",
+ 53: "Lead Author",  54: "Drafter",      55: "Lead Author", 56: "Vibe Writer",
+ 57: "Lead Author",  58: "Lead Author",  59: "Drafter",     60: "Vibe Writer",
+ 61: "Lead Author",  62: "Lead Author",  63: "Lead Author", 64: "Drafter",
+ 65: "Collaborator", 66: "Collaborator", 67: "Vibe Writer", 68: "Vibe Writer",
+ 69: "Lead Author",  70: "Drafter",      71: "Drafter",     72: "Lead Author",
+ 73: "Lead Author",  74: "Vibe Writer",  75: "Drafter",     76: "Lead Author",
+ 77: "Vibe Writer",
+};
+
+function getWriterType(participantNumber: number): string {
+  return PARTICIPANT_ROLES[participantNumber] ?? "Lead Author";
 }
 
 const WRITER_PROFILES = [
@@ -750,7 +769,7 @@ function LandingPage() {
           const participantData: any = result.data.find((row: any) => parseInt(row.id) === i);
 
           if (participantData) {
-            const userType = getWriterType(participantData);
+            const userType = getWriterType(i + 1);
             return {
               value: `p${i + 1}`,
               label: `Participant ${i + 1} - ${userType} (${participantData.Gender?.toLowerCase()}, ${participantData.Age}, ${participantData.Race?.toLowerCase()})`,
