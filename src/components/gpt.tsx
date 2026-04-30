@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Message, PasteText } from "@/components/types";
 
@@ -7,8 +7,20 @@ type GPTProps = {
   pasteTexts?: PasteText[];
 };
 
+const PREVIEW_LENGTH = 120;
+
 export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+
+  const toggleExpanded = (id: number) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -108,8 +120,12 @@ export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
             </div>
           ) : (
             <>
-                {messages.map((m) => (
-                console.log(m.content),
+                {messages.map((m) => {
+                const isExpanded = expandedIds.has(m.id);
+                const isCollapsible = m.content.length > PREVIEW_LENGTH;
+                const preview = isCollapsible ? m.content.slice(0, PREVIEW_LENGTH).trimEnd() + "…" : m.content;
+
+                return (
                 <div
                   key={m.id}
                   className="flex w-full"
@@ -117,7 +133,10 @@ export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
                   {/* User messages */}
                   {m.role === "user" ? (
                     <div className="ml-auto w-[90%]">
-                      <div className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-3 shadow-sm">
+                      <div
+                        className={`bg-gray-100 text-gray-900 rounded-2xl px-4 py-3 shadow-sm ${isCollapsible ? "cursor-pointer select-none" : ""}`}
+                        onClick={() => isCollapsible && toggleExpanded(m.id)}
+                      >
                         {/* Header */}
                         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-300">
                           <Image
@@ -128,17 +147,27 @@ export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
                             className="rounded-full"
                           />
                           <span className="font-semibold text-sm">User</span>
+                          {isCollapsible && (
+                            <span className="ml-auto text-gray-400 text-xs">
+                              {isExpanded ? "▲ collapse" : "▼ expand"}
+                            </span>
+                          )}
                         </div>
                         {/* Message content */}
                         <div className="whitespace-pre-wrap text-[20px]">
-                          {highlightPastedText(m.content, "user")}
+                          {isExpanded
+                            ? highlightPastedText(m.content, "user")
+                            : highlightPastedText(preview, "user")}
                         </div>
                       </div>
                     </div>
                   ) : (
                     /* Assistant messages */
                     <div className="mr-auto w-[90%]">
-                      <div className="bg-gray-200 text-gray-900 rounded-2xl px-4 py-3 shadow-sm">
+                      <div
+                        className={`bg-gray-200 text-gray-900 rounded-2xl px-4 py-3 shadow-sm ${isCollapsible ? "cursor-pointer select-none" : ""}`}
+                        onClick={() => isCollapsible && toggleExpanded(m.id)}
+                      >
                         {/* Header */}
                         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-300">
                           <Image
@@ -149,16 +178,24 @@ export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
                             className="rounded-full"
                           />
                           <span className="font-semibold text-sm">ChatGPT</span>
+                          {isCollapsible && (
+                            <span className="ml-auto text-gray-400 text-xs">
+                              {isExpanded ? "▲ collapse" : "▼ expand"}
+                            </span>
+                          )}
                         </div>
                         {/* Message content */}
                         <div className="whitespace-pre-wrap text-[20px]">
-                          {highlightPastedText(m.content, "assistant")}
+                          {isExpanded
+                            ? highlightPastedText(m.content, "assistant")
+                            : highlightPastedText(preview, "assistant")}
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
               {/* Invisible div for auto-scroll anchor */}
               <div ref={messagesEndRef} />
             </>
