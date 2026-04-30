@@ -52,17 +52,25 @@ export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
           highlightCount++;
 
           const backgroundColor = messageRole === "user"
-            ? 'rgba(59, 130, 246, 0.35)'  
-            : 'rgba(249, 115, 22, 0.35)'; 
+            ? 'rgba(59, 130, 246, 0.35)'
+            : 'rgba(249, 115, 22, 0.35)';
+
+          const before = normalizedContent.slice(0, matchIndex);
+          const match = normalizedContent.slice(matchIndex, matchIndex + lowerPaste.length);
+          const after = normalizedContent.slice(matchIndex + lowerPaste.length);
 
           result = (
-            <span
-              key={`highlight-${highlightCount}`}
-              className="rounded px-1"
-              style={{ backgroundColor }}
-            >
-              {result}
-            </span>
+            <>
+              {before}
+              <span
+                key={`highlight-${highlightCount}`}
+                className="rounded px-1"
+                style={{ backgroundColor }}
+              >
+                {match}
+              </span>
+              {after}
+            </>
           );
         }
       }
