@@ -13,6 +13,15 @@ export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
+  // When new messages arrive, expand them by default
+  useEffect(() => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      messages.forEach((m) => next.add(m.id));
+      return next;
+    });
+  }, [messages]);
+
   const toggleExpanded = (id: number) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
