@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Select from "react-select";
@@ -20,33 +20,112 @@ interface ParticipantOption extends Partial<ParticipantStats> {
 
 const ABSTRACT = `With the rapid adoption of AI writing assistants in education, educators and researchers need empirical evidence to understand the impact on student writing and inform effective pedagogical design. Despite widespread use, we lack systematic understanding of how students engage with these tools during authentic writing tasks: when they seek assistance, what they ask, and how they incorporate AI-generated content into their essays. This gap limits evidence-based policy development and rigorous evaluation of generative AI's learning effects. To address this gap, we introduce NIRVANA, a dataset capturing how university students use generative AI while writing an analytical essay. The dataset includes 77 students who completed an essay task with access to ChatGPT, recording keystroke-level writing behavior, full ChatGPT conversation histories, and all text copied from ChatGPT, enabling a complete reconstruction of the writing process and revealing how AI assistance shapes student work. Our analysis identifies key behavioral patterns, including variation in ChatGPT query frequency and its relationship to essay characteristics such as length and readability. We identify four writing profiles based on students' contribution and revision patterns: Lead Authors, Collaborators, Drafters, and Vibe Writers. To support deeper investigation, we developed a replay interface that reconstructs the writing process; qualitative analysis of sampled replays demonstrates how this tool enables systematic examination of student-AI interactions.`;
 
-const BIBTEX = `@inproceedings{nirvana2025,
-  title     = {NIRVANA: A Dataset for Reproducing How Students Use Generative AI for Essay Writing},
-  author    = {EchoLab, Virginia Tech},
-  year      = {2025}
+const BIBTEX_CHI = `@inproceedings{10.1145/3772318.3791056,
+    author = {Jelson, Andrew and Manesh, Daniel and Jang, Alice and Dunlap, Daniel and Kim, Young-Ho and Lee, Sang Won},
+    title = {An Empirical Study to Understand How Students Use ChatGPT for Writing Essays},
+    year = {2026},
+    isbn = {9798400722783},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3772318.3791056},
+    doi = {10.1145/3772318.3791056},
+    booktitle = {Proceedings of the 2026 CHI Conference on Human Factors in Computing Systems},
+    articleno = {950},
+    numpages = {26},
+    keywords = {Education/Learning, Empirical Study That Tells Us How People Use A System, ChatGPT, Writing with AI, Vibe Writing},
+    location = {
+    },
+    series = {CHI '26}
+}`;
+
+const BIBTEX_ARXIV = `@misc{10.48550/arXiv.2604.07344,
+      title={NIRVANA: A Comprehensive Dataset for Reproducing How Students Use Generative AI for Essay Writing},
+      author={Andrew Jelson and Daniel Manesh and Sangwook Lee and Alice Jang and Daniel Dunlap and Tamara Maddox and Young-Ho Kim and Sang Won Lee},
+      year={2026},
+      eprint={2604.07344},
+      archivePrefix={arXiv},
+      primaryClass={cs.HC},
+      url={https://arxiv.org/abs/2604.07344},
 }`;
 
 const PARTICIPANT_ROLES: Record<number, string> = {
-  1: "Collaborator",  2: "Collaborator",  3: "Lead Author",  4: "Lead Author",
-  5: "Lead Author",   6: "Vibe Writer",   7: "Collaborator", 8: "Drafter",
-  9: "Lead Author",  10: "Drafter",      11: "Collaborator",12: "Collaborator",
- 13: "Lead Author",  14: "Vibe Writer",  15: "Lead Author", 16: "Collaborator",
- 17: "Lead Author",  18: "Lead Author",  19: "Drafter",     20: "Collaborator",
- 21: "Collaborator", 22: "Lead Author",  23: "Lead Author", 24: "Lead Author",
- 25: "Lead Author",  26: "Collaborator", 27: "Lead Author", 28: "Collaborator",
- 29: "Lead Author",  30: "Lead Author",  31: "Collaborator",32: "Vibe Writer",
- 33: "Vibe Writer",  34: "Vibe Writer",  35: "Collaborator",36: "Lead Author",
- 37: "Lead Author",  38: "Vibe Writer",  39: "Lead Author", 40: "Lead Author",
- 41: "Lead Author",  42: "Vibe Writer",  43: "Drafter",     44: "Lead Author",
- 45: "Collaborator", 46: "Lead Author",  47: "Lead Author", 48: "Lead Author",
- 49: "Vibe Writer",  50: "Lead Author",  51: "Drafter",     52: "Lead Author",
- 53: "Lead Author",  54: "Drafter",      55: "Lead Author", 56: "Vibe Writer",
- 57: "Lead Author",  58: "Lead Author",  59: "Drafter",     60: "Vibe Writer",
- 61: "Lead Author",  62: "Lead Author",  63: "Lead Author", 64: "Drafter",
- 65: "Collaborator", 66: "Collaborator", 67: "Vibe Writer", 68: "Vibe Writer",
- 69: "Lead Author",  70: "Drafter",      71: "Drafter",     72: "Lead Author",
- 73: "Lead Author",  74: "Vibe Writer",  75: "Drafter",     76: "Lead Author",
- 77: "Vibe Writer",
+  1: "Collaborator",
+  2: "Collaborator",
+  3: "Lead Author",
+  4: "Lead Author",
+  5: "Lead Author",
+  6: "Vibe Writer",
+  7: "Collaborator",
+  8: "Drafter",
+  9: "Lead Author",
+  10: "Drafter",
+  11: "Collaborator",
+  12: "Collaborator",
+  13: "Lead Author",
+  14: "Vibe Writer",
+  15: "Lead Author",
+  16: "Collaborator",
+  17: "Lead Author",
+  18: "Lead Author",
+  19: "Drafter",
+  20: "Collaborator",
+  21: "Collaborator",
+  22: "Lead Author",
+  23: "Lead Author",
+  24: "Lead Author",
+  25: "Lead Author",
+  26: "Collaborator",
+  27: "Lead Author",
+  28: "Collaborator",
+  29: "Lead Author",
+  30: "Lead Author",
+  31: "Collaborator",
+  32: "Vibe Writer",
+  33: "Vibe Writer",
+  34: "Vibe Writer",
+  35: "Collaborator",
+  36: "Lead Author",
+  37: "Lead Author",
+  38: "Vibe Writer",
+  39: "Lead Author",
+  40: "Lead Author",
+  41: "Lead Author",
+  42: "Vibe Writer",
+  43: "Drafter",
+  44: "Lead Author",
+  45: "Collaborator",
+  46: "Lead Author",
+  47: "Lead Author",
+  48: "Lead Author",
+  49: "Vibe Writer",
+  50: "Lead Author",
+  51: "Drafter",
+  52: "Lead Author",
+  53: "Lead Author",
+  54: "Drafter",
+  55: "Lead Author",
+  56: "Vibe Writer",
+  57: "Lead Author",
+  58: "Lead Author",
+  59: "Drafter",
+  60: "Vibe Writer",
+  61: "Lead Author",
+  62: "Lead Author",
+  63: "Lead Author",
+  64: "Drafter",
+  65: "Collaborator",
+  66: "Collaborator",
+  67: "Vibe Writer",
+  68: "Vibe Writer",
+  69: "Lead Author",
+  70: "Drafter",
+  71: "Drafter",
+  72: "Lead Author",
+  73: "Lead Author",
+  74: "Vibe Writer",
+  75: "Drafter",
+  76: "Lead Author",
+  77: "Vibe Writer",
 };
 
 function getWriterType(participantNumber: number): string {
@@ -157,9 +236,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="text-3xl font-bold text-gray-900 mb-4">{children}</h2>
-  );
+  return <h2 className="text-3xl font-bold text-gray-900 mb-4">{children}</h2>;
 }
 
 function StatCard({
@@ -191,11 +268,9 @@ function PaperHero() {
     <section className="bg-gradient-to-br from-[#4A1225] via-[#6B1A33] to-[#861F41] text-white py-24 px-6">
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-5xl sm:text-6xl font-extrabold leading-tight mb-4 tracking-tight">
-          NIRVANA
+          A Dataset for Reproducing How Students Use Generative AI for Essay
+          Writing
         </h1>
-        <p className="text-xl sm:text-2xl text-[#F5C5A3] font-medium max-w-3xl mx-auto mb-8 leading-relaxed">
-          A Dataset for Reproducing How Students Use Generative AI for Essay Writing
-        </p>
         {/* EchoLab branding */}
         <div className="flex flex-col items-center gap-2 mb-10">
           <div className="bg-white rounded-2xl px-6 py-3 shadow-lg">
@@ -206,7 +281,9 @@ function PaperHero() {
               className="h-10 w-auto object-contain"
             />
           </div>
-          <div className="text-[#F5C5A3] text-sm">Virginia Tech · Blacksburg, VA</div>
+          <div className="text-[#F5C5A3] text-sm">
+            Virginia Tech · Blacksburg, VA
+          </div>
         </div>
         <div className="flex flex-wrap gap-3 justify-center">
           <a
@@ -215,15 +292,15 @@ function PaperHero() {
             rel="noopener noreferrer"
             className="px-6 py-3 bg-[#861F41]/60 border border-[#E5751F]/60 text-white font-semibold rounded-lg shadow hover:bg-[#E5751F]/30 transition-colors duration-200"
           >
-            arXiv
+            NIRVANA
           </a>
           <a
-            href="https://arxiv.org/pdf/2604.07344"
+            href="https://dl.acm.org/doi/10.1145/3772318.3791056"
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-3 bg-[#861F41]/60 border border-[#E5751F]/60 text-white font-semibold rounded-lg shadow hover:bg-[#E5751F]/30 transition-colors duration-200"
           >
-            Paper
+            CHI 2026 Paper
           </a>
           <button
             onClick={() => scrollTo("publications")}
@@ -353,24 +430,21 @@ function FindingsSection() {
       y: "Word Count",
       rho: "0.485",
       p: "p < 0.001",
-      note:
-        "Students who asked more questions produced longer essays, suggesting ChatGPT may function as a generative scaffold.",
+      note: "Students who asked more questions produced longer essays, suggesting ChatGPT may function as a generative scaffold.",
     },
     {
       x: "Query Count",
       y: "Time Spent",
       rho: "0.493",
       p: "p < 0.001",
-      note:
-        "Higher query frequency was associated with longer sessions — contrary to the expectation that AI use would expedite writing.",
+      note: "Higher query frequency was associated with longer sessions — contrary to the expectation that AI use would expedite writing.",
     },
     {
       x: "Query Count",
       y: "Dale-Chall Score",
       rho: "0.380",
       p: "p < 0.001",
-      note:
-        "More queries correlated with higher readability difficulty scores, consistent with the lexical complexity of LLM-generated text.",
+      note: "More queries correlated with higher readability difficulty scores, consistent with the lexical complexity of LLM-generated text.",
     },
   ];
 
@@ -399,7 +473,9 @@ function FindingsSection() {
                 <div className="text-sm font-semibold text-gray-500 mb-1">
                   {c.x} &nbsp;↔&nbsp; {c.y}
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed">{c.note}</p>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {c.note}
+                </p>
               </div>
             </div>
           ))}
@@ -488,7 +564,8 @@ function MetricsSection() {
             <p className="text-xs text-gray-500 italic">
               Limitation: HCR does not capture cases where a participant wrote
               an entire draft and then replaced it with a ChatGPT revision — the
-              score would be 0 even though the ideas originated with the student.
+              score would be 0 even though the ideas originated with the
+              student.
             </p>
           </div>
 
@@ -570,9 +647,7 @@ function ReplaySystemSection() {
           ))}
         </ul>
 
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
-          Case Studies
-        </h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Case Studies</h3>
         <p className="text-gray-600 text-sm mb-6 max-w-2xl">
           Two instructors of writing-intensive courses conducted a reflexive
           review of selected sessions. The following cases illustrate how
@@ -593,7 +668,9 @@ function ReplaySystemSection() {
                   {c.cluster}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 leading-relaxed">{c.summary}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {c.summary}
+              </p>
             </div>
           ))}
         </div>
@@ -609,77 +686,120 @@ function ReplaySystemSection() {
   );
 }
 
-function PublicationsSection() {
+function BibtexModal({ bibtex, onClose }: { bibtex: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(BIBTEX).then(() => {
+    navigator.clipboard.writeText(bibtex).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
   };
 
   return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h3 className="text-base font-semibold text-gray-900">BibTeX Citation</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+        <div className="p-6">
+          <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+            {bibtex}
+          </div>
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={handleCopy}
+              className="text-sm px-4 py-2 rounded-lg bg-[#861F41] text-white hover:bg-[#6B1A33] transition-colors duration-150"
+            >
+              {copied ? "Copied!" : "Copy Citation"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PublicationsSection() {
+  const [activeBibtex, setActiveBibtex] = useState<string | null>(null);
+
+  const linkClass = "text-xs px-3 py-1 rounded-full bg-[#861F41]/10 text-[#861F41] font-medium hover:bg-[#861F41]/20 transition-colors";
+
+  return (
     <section id="publications" className="py-16 px-6 bg-white">
+      {activeBibtex && (
+        <BibtexModal bibtex={activeBibtex} onClose={() => setActiveBibtex(null)} />
+      )}
       <div className="max-w-3xl mx-auto">
         <SectionLabel>Publications</SectionLabel>
         <SectionHeading>Publications & Citation</SectionHeading>
 
-        {/* Publication card */}
+        {/* CHI 2026 card */}
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8">
           <div className="flex items-start gap-3 mb-3">
             <span className="shrink-0 mt-1 text-xs font-bold bg-[#861F41] text-white px-2 py-0.5 rounded">
-              2025
+              CHI 2026
             </span>
             <h3 className="text-base font-semibold text-gray-900 leading-snug">
-              NIRVANA: A Dataset for Reproducing How Students Use Generative AI for Essay Writing
+              An Empirical Study to Understand How Students Use ChatGPT for
+              Writing Essays
             </h3>
           </div>
           <div className="flex items-center gap-3 mb-4 pl-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://wordpress.cs.vt.edu/echolab/wp-content/uploads/sites/105/2018/09/cropped-cropped-cropped-EchoLab-LR-White-Background_Final.png"
-              alt="EchoLab"
-              className="h-6 w-auto object-contain"
-            />
+            <span className="text-sm text-gray-500 w-3/4 shrink-0">
+              Andrew Jelson, Daniel Manesh, Alice Jang, Daniel Dunlap, Young-Ho
+              Kim, Sang Won Lee
+            </span>
             <span className="text-gray-400">·</span>
-            <span className="text-sm text-gray-500">Virginia Tech</span>
+            <span className="text-sm text-gray-500 whitespace-nowrap">
+              Virginia Tech
+            </span>
           </div>
           <div className="pl-8 flex gap-2">
-            <a
-              href="https://arxiv.org/abs/2604.07344"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-1 rounded-full bg-[#861F41]/10 text-[#861F41] font-medium hover:bg-[#861F41]/20 transition-colors"
-            >
-              arXiv
-            </a>
-            <a
-              href="https://arxiv.org/pdf/2604.07344"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-1 rounded-full bg-[#861F41]/10 text-[#861F41] font-medium hover:bg-[#861F41]/20 transition-colors"
-            >
-              PDF
-            </a>
+            <a href="https://dl.acm.org/doi/10.1145/3772318.3791056" target="_blank" rel="noopener noreferrer" className={linkClass}>doi</a>
+            <a href="https://dl.acm.org/doi/pdf/10.1145/3772318.3791056" target="_blank" rel="noopener noreferrer" className={linkClass}>PDF</a>
+            <button onClick={() => setActiveBibtex(BIBTEX_CHI)} className={linkClass}>Cite</button>
           </div>
         </div>
 
-        {/* BibTeX */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">BibTeX Citation</h3>
-        <div className="relative bg-gray-900 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-700">
-            <span className="text-xs text-gray-400 font-mono">bibtex</span>
-            <button
-              onClick={handleCopy}
-              className="text-xs text-gray-300 hover:text-white px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 transition-colors duration-150"
-            >
-              {copied ? "Copied!" : "Copy"}
-            </button>
+        {/* arXiv card */}
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8">
+          <div className="flex items-start gap-3 mb-3">
+            <span className="shrink-0 mt-1 text-xs font-bold bg-[#861F41] text-white px-2 py-0.5 rounded">
+              2026
+            </span>
+            <h3 className="text-base font-semibold text-gray-900 leading-snug">
+              NIRVANA: A Dataset for Reproducing How Students Use Generative AI
+              for Essay Writing
+            </h3>
           </div>
-          <pre className="p-5 text-sm text-green-300 font-mono overflow-x-auto whitespace-pre">
-            {BIBTEX}
-          </pre>
+          <div className="flex items-center gap-3 mb-4 pl-8">
+            <span className="text-sm text-gray-500 w-3/4 shrink-0">
+              Andrew Jelson, Daniel Manesh, Sangwook Lee, Alice Jang, Daniel
+              Dunlap, Tamara Maddox, Young-Ho Kim, Sang Won Lee
+            </span>
+            <span className="text-gray-400">·</span>
+            <span className="text-sm text-gray-500 whitespace-nowrap">
+              Virginia Tech
+            </span>
+          </div>
+          <div className="pl-8 flex gap-2">
+            <a href="https://arxiv.org/abs/2604.07344" target="_blank" rel="noopener noreferrer" className={linkClass}>arXiv</a>
+            <a href="https://arxiv.org/pdf/2604.07344" target="_blank" rel="noopener noreferrer" className={linkClass}>PDF</a>
+            <button onClick={() => setActiveBibtex(BIBTEX_ARXIV)} className={linkClass}>Cite</button>
+          </div>
         </div>
       </div>
     </section>
@@ -718,7 +838,11 @@ function AcademicPage() {
             step by step.
           </p>
         </div>
-        <Suspense fallback={<div className="p-12 text-center text-gray-400">Loading…</div>}>
+        <Suspense
+          fallback={
+            <div className="p-12 text-center text-gray-400">Loading…</div>
+          }
+        >
           <LandingPage />
         </Suspense>
       </section>
@@ -734,7 +858,8 @@ export default function Home() {
 
 function LandingPage() {
   const [participants, setParticipants] = useState<ParticipantOption[]>([]);
-  const [selectedParticipant, setSelectedParticipant] = useState<ParticipantOption | null>(null);
+  const [selectedParticipant, setSelectedParticipant] =
+    useState<ParticipantOption | null>(null);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -765,35 +890,41 @@ function LandingPage() {
         });
 
         // Create participants array with demographic info and metrics
-        const participantOptions: ParticipantOption[] = Array.from({ length: 77 }, (_, i) => {
-          const participantData: any = result.data.find((row: any) => parseInt(row.id) === i);
+        const participantOptions: ParticipantOption[] = Array.from(
+          { length: 77 },
+          (_, i) => {
+            const participantData: any = result.data.find(
+              (row: any) => parseInt(row.id) === i,
+            );
 
-          if (participantData) {
-            const userType = getWriterType(i + 1);
+            if (participantData) {
+              const userType = getWriterType(i + 1);
+              return {
+                value: `p${i + 1}`,
+                label: `Participant ${i + 1} - ${userType} (${participantData.Gender?.toLowerCase()}, ${participantData.Age}, ${participantData.Race?.toLowerCase()})`,
+                gender: participantData.Gender,
+                age: participantData.Age,
+                race: participantData.Race,
+                po: parseFloat(participantData["Percieved Ownership"]) || 0,
+                userWords: parseInt(participantData["User Final Words"]) || 0,
+                gptWords: parseInt(participantData["GPT Final Words"]) || 0,
+                totalWords: parseInt(participantData["Total Words"]) || 0,
+                selfEfficacy:
+                  parseFloat(participantData["Self Efficacy Score"]) || 0,
+                tamOverall: parseFloat(participantData["TAM Overall"]) || 0,
+                csiTotal: parseFloat(participantData["CSI Total"]) || 0,
+                gptInquiry: parseInt(participantData["GPT Inquiry"]) || 0,
+                totalTime: parseFloat(participantData["Total Time"]) || 0,
+                userPercent: parseFloat(participantData["User Final %"]) || 0,
+              };
+            }
+
             return {
               value: `p${i + 1}`,
-              label: `Participant ${i + 1} - ${userType} (${participantData.Gender?.toLowerCase()}, ${participantData.Age}, ${participantData.Race?.toLowerCase()})`,
-              gender: participantData.Gender,
-              age: participantData.Age,
-              race: participantData.Race,
-              po: parseFloat(participantData["Percieved Ownership"]) || 0,
-              userWords: parseInt(participantData["User Final Words"]) || 0,
-              gptWords: parseInt(participantData["GPT Final Words"]) || 0,
-              totalWords: parseInt(participantData["Total Words"]) || 0,
-              selfEfficacy: parseFloat(participantData["Self Efficacy Score"]) || 0,
-              tamOverall: parseFloat(participantData["TAM Overall"]) || 0,
-              csiTotal: parseFloat(participantData["CSI Total"]) || 0,
-              gptInquiry: parseInt(participantData["GPT Inquiry"]) || 0,
-              totalTime: parseFloat(participantData["Total Time"]) || 0,
-              userPercent: parseFloat(participantData["User Final %"]) || 0,
+              label: `Participant ${i + 1}`,
             };
-          }
-
-          return {
-            value: `p${i + 1}`,
-            label: `Participant ${i + 1}`,
-          };
-        });
+          },
+        );
 
         setParticipants(participantOptions);
         setSelectedParticipant(null);
@@ -830,30 +961,43 @@ function LandingPage() {
     <main className="max-w-4xl mx-auto px-6 py-12">
       {/* Instructions Section */}
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Instructions
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Instructions</h2>
         <div className="text-gray-700 leading-relaxed space-y-4">
           <p>
-            This tool allows you to replay essay writing sessions with
-            ChatGPT. Select a participant from the dropdown below and click
-            "Start Replay Session" to begin.
+            This tool allows you to replay essay writing sessions with ChatGPT.
+            Select a participant from the dropdown below and click "Start Replay
+            Session" to begin.
           </p>
           <p>
-            Once you start a replay session, you'll see two main panels: the left panel displays the essay editor showing the participant's writing in real-time, and the right panel shows the conversation the participant had with ChatGPT. You can toggle the "Prompt" button on the left to view the prompt given to the participant. This prompt is the example ACT prompt.
+            Once you start a replay session, you'll see two main panels: the
+            left panel displays the essay editor showing the participant's
+            writing in real-time, and the right panel shows the conversation the
+            participant had with ChatGPT. You can toggle the "Prompt" button on
+            the left to view the prompt given to the participant. This prompt is
+            the example ACT prompt.
           </p>
           <p>
-            Below the participant selection, you can view various statistics referring to the participant and the essay writing session. The bar graphs show the user's Self Efficacy, Technology Acceptance Model, Percieved Ownership, and Creativity Support Index scores. The table shows the number of inquiries made, total words in the essay, the proportion of user written words, and the total time taken to write the essay. The statistics are also shown in the essay replay page with the button on the right.
+            Below the participant selection, you can view various statistics
+            referring to the participant and the essay writing session. The bar
+            graphs show the user's Self Efficacy, Technology Acceptance Model,
+            Percieved Ownership, and Creativity Support Index scores. The table
+            shows the number of inquiries made, total words in the essay, the
+            proportion of user written words, and the total time taken to write
+            the essay. The statistics are also shown in the essay replay page
+            with the button on the right.
           </p>
           <p>
             To start the replay, press the play button on the left side of the
-            screen. You can pause, jump to the start and end of the essay, and set the playback speed through the
-            session to analyze the interaction between the participant and ChatGPT.
+            screen. You can pause, jump to the start and end of the essay, and
+            set the playback speed through the session to analyze the
+            interaction between the participant and ChatGPT.
           </p>
           <p>
             The timeline is annotated with the ChatGPT events, shown as small
-            triangles on the timeline. Click to seek to these events
-            directly. The orange triangles indicate a copy event, purple indicates paste events, and green indicates GPT Inquiries. Use the legend to review this information during the replay session.
+            triangles on the timeline. Click to seek to these events directly.
+            The orange triangles indicate a copy event, purple indicates paste
+            events, and green indicates GPT Inquiries. Use the legend to review
+            this information during the replay session.
           </p>
         </div>
       </div>
@@ -876,7 +1020,9 @@ function LandingPage() {
                   <Select
                     options={participants}
                     value={selectedParticipant}
-                    onChange={(option) => option && setSelectedParticipant(option)}
+                    onChange={(option) =>
+                      option && setSelectedParticipant(option)
+                    }
                     isSearchable={true}
                     className="text-black"
                     styles={{
