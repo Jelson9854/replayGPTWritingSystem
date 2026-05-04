@@ -467,32 +467,23 @@ function ReplayPage() {
   };
 
   const getWordCountData = (data: any[]) => {
-    // Filter editor events with current_editor data and sort by time
     const editorEvents = data
       .filter((e) => e.op_loc === "editor" && e.current_editor)
       .sort((a, b) => a.time - b.time);
 
     const wordCounts: WordCountData[] = [];
-
-    // Add initial point at time 0
     wordCounts.push({ time: 0, wordCount: 0 });
 
     for (const event of editorEvents) {
       try {
         const lines = JSON.parse(event.current_editor);
         const text = lines.join(" ");
-        // Count words by splitting on whitespace and filtering empty strings
-        const words = text
+        const wordCount = text
           .split(/\s+/)
-          .filter((word: string) => word.length > 0);
-        const wordCount = words.length;
+          .filter((word: string) => word.length > 0).length;
 
-        wordCounts.push({
-          time: event.time,
-          wordCount: wordCount,
-        });
+        wordCounts.push({ time: event.time, wordCount });
       } catch (e) {
-        // Skip if parsing fails
         continue;
       }
     }

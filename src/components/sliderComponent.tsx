@@ -85,13 +85,21 @@ export default function SliderComponent({
       }));
     }
 
-    // Sample every 5 seconds and hold the last known word count.
+    // Build sample times: every 5 seconds + exact wordCountData times so
+    // large jumps (e.g. pastes) always appear at the correct position.
+    const interval = 5;
+    const sampleTimes = new Set<number>();
+    for (let t = 0; t <= totalDuration; t += interval) sampleTimes.add(t);
+    wordCountData.forEach(d => sampleTimes.add(d.time));
+    sampleTimes.add(totalDuration);
+
+    const sortedTimes = Array.from(sampleTimes).sort((a, b) => a - b);
+
     const interpolatedData: Array<{time: number, percentage: number, wordCount: number, timeFormatted: string}> = [];
-    const interval = 5; // seconds
     let dataIndex = 0;
     let currentWordCount = wordCountData[0].wordCount;
 
-    for (let t = 0; t <= totalDuration; t += interval) {
+    for (const t of sortedTimes) {
       while (
         dataIndex + 1 < wordCountData.length &&
         wordCountData[dataIndex + 1].time <= t
@@ -105,17 +113,6 @@ export default function SliderComponent({
         percentage: (t / totalDuration) * 100,
         wordCount: currentWordCount,
         timeFormatted: `${Math.floor(t / 60)}:${Math.floor(t % 60).toString().padStart(2, '0')}`
-      });
-    }
-
-    // Ensure we have the last point
-    if (interpolatedData[interpolatedData.length - 1]?.time !== totalDuration) {
-      const lastData = wordCountData[wordCountData.length - 1];
-      interpolatedData.push({
-        time: totalDuration,
-        percentage: 100,
-        wordCount: lastData.wordCount,
-        timeFormatted: `${Math.floor(totalDuration / 60)}:${Math.floor(totalDuration % 60).toString().padStart(2, '0')}`
       });
     }
 
