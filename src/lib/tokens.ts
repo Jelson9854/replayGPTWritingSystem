@@ -33,5 +33,5 @@ export const TOKEN_MAP: Record<string, string> = {
   "N3-71f5": "p24",
   "N4-9a3e": "p53",
   //Practice
-  "practice" : "p25",
+  "practice" : "p26",
 };
