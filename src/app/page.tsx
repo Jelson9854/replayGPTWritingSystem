@@ -286,6 +286,7 @@ function PaperHero() {
         </div>
         */}
         <div className="flex flex-wrap gap-3 justify-center">
+          {/* Anonymized for review — restore after publication
           <a
             href="https://arxiv.org/abs/2604.07344"
             target="_blank"
@@ -308,6 +309,7 @@ function PaperHero() {
           >
             Cite
           </button>
+          */}
           <button
             onClick={() => scrollTo("replay-tool")}
             className="px-6 py-3 bg-[#861F41]/60 border border-[#E5751F]/60 text-white font-semibold rounded-lg shadow hover:bg-[#E5751F]/30 transition-colors duration-200"
@@ -572,7 +574,7 @@ function MetricsSection() {
           {/* HER */}
           <div className="bg-[#FFF7F0] border border-[#E5751F]/30 rounded-2xl p-6">
             <h3 className="text-lg font-bold text-[#7A3000] mb-1">
-              Human Edit Ratio
+              Human Effort Ratio
             </h3>
             <span className="text-xs text-[#E5751F] font-semibold tracking-wide uppercase">
               HER
@@ -743,8 +745,10 @@ function PublicationsSection() {
         <BibtexModal bibtex={activeBibtex} onClose={() => setActiveBibtex(null)} />
       )}
       <div className="max-w-3xl mx-auto">
+        {/* Anonymized for review — restore after publication
         <SectionLabel>Publications</SectionLabel>
         <SectionHeading>Publications & Citation</SectionHeading>
+        */}
 
         {/* Anonymized for review — restore after publication
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8">
