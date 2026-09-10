@@ -271,10 +271,9 @@ function PaperHero() {
           A Dataset for Reproducing How Students Use Generative AI for Essay
           Writing
         </h1>
-        {/* EchoLab branding */}
+        {/* Anonymized for review — restore after publication
         <div className="flex flex-col items-center gap-2 mb-10">
           <div className="bg-white rounded-2xl px-6 py-3 shadow-lg">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://wordpress.cs.vt.edu/echolab/wp-content/uploads/sites/105/2018/09/cropped-cropped-cropped-EchoLab-LR-White-Background_Final.png"
               alt="EchoLab"
@@ -285,6 +284,7 @@ function PaperHero() {
             Virginia Tech · Blacksburg, VA
           </div>
         </div>
+        */}
         <div className="flex flex-wrap gap-3 justify-center">
           <a
             href="https://arxiv.org/abs/2604.07344"
@@ -746,7 +746,7 @@ function PublicationsSection() {
         <SectionLabel>Publications</SectionLabel>
         <SectionHeading>Publications & Citation</SectionHeading>
 
-        {/* CHI 2026 card */}
+        {/* Anonymized for review — restore after publication
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8">
           <div className="flex items-start gap-3 mb-3">
             <span className="shrink-0 mt-1 text-xs font-bold bg-[#861F41] text-white px-2 py-0.5 rounded">
@@ -774,7 +774,6 @@ function PublicationsSection() {
           </div>
         </div>
 
-        {/* arXiv card */}
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-8">
           <div className="flex items-start gap-3 mb-3">
             <span className="shrink-0 mt-1 text-xs font-bold bg-[#861F41] text-white px-2 py-0.5 rounded">
@@ -801,6 +800,7 @@ function PublicationsSection() {
             <button onClick={() => setActiveBibtex(BIBTEX_ARXIV)} className={linkClass}>Cite</button>
           </div>
         </div>
+        */}
       </div>
     </section>
   );

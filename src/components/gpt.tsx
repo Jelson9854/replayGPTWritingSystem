@@ -54,7 +54,7 @@ export default function GPT({ messages = [], pasteTexts = [] }: GPTProps) {
       // Convert paste text format to match message format:
       const formattedPaste = trimmedPaste.replace(/\\n/g, '\n');
 
-      const normalizedPaste = formattedPaste.replace(/\s+/g, ' ').slice(0, formattedPaste.length - 6);
+      const normalizedPaste = formattedPaste.replace(/\s+/g, ' ').trim();
       const lowerPaste = normalizedPaste.toLowerCase();
 
 
