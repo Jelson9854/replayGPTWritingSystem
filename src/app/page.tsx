@@ -574,7 +574,7 @@ function MetricsSection() {
           {/* HER */}
           <div className="bg-[#FFF7F0] border border-[#E5751F]/30 rounded-2xl p-6">
             <h3 className="text-lg font-bold text-[#7A3000] mb-1">
-              Human Effort Ratio
+              Human Edit Ratio
             </h3>
             <span className="text-xs text-[#E5751F] font-semibold tracking-wide uppercase">
               HER
@@ -592,7 +592,7 @@ function MetricsSection() {
             <p className="text-xs text-gray-500 italic">
               Limitation: HER does not capture cognitive effort involved in
               planning, ideation, or deciding whether to incorporate AI output —
-              it reflects observable editing effort, not cognitive contribution.
+              it reflects observable editing, not cognitive contribution.
             </p>
           </div>
         </div>
